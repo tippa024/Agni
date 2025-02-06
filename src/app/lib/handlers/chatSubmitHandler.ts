@@ -17,7 +17,6 @@ interface ChatState {
   messages: Message[];
   input: string;
   isSearching: boolean;
-  isExtracting: boolean;
   currentSearchResults: SearchResult[];
   searchEnabled: boolean;
   reasoningEnabled: boolean;
@@ -30,7 +29,6 @@ interface ChatActions {
   setMessages: (messages: Message[] | ((prev: Message[]) => Message[])) => void;
   setInput: (input: string) => void;
   setIsSearching: (isSearching: boolean) => void;
-  setIsExtracting: (isExtracting: boolean) => void;
   setCurrentSearchResults: (results: SearchResult[]) => void;
   setChatHistory: (
     history: { role: string; content: string }[] | ((prev: any[]) => any[])
@@ -286,9 +284,7 @@ ${
 
         // Check if there are any search results to process
         if (context.results.length > 0) {
-          console.log("Content Extraction - Starting");
-          // Set the isExtracting flag to true to indicate that content extraction is in progress
-          actions.setIsExtracting(true);
+          console.log("Tavily Content Extraction - Starting");
           // Extract URLs from the top 3 search results, sorted by score in descending order
           const urls = context.results
             .sort((a, b) => b.score - a.score) // Sort results by score, highest first
@@ -309,11 +305,9 @@ ${
               .join("\n\n"); // Join the content with double newlines
           }
           console.log(
-            "Content Extraction - Completed",
+            "Tavily Content Extraction - Completed",
             context.extractedContent
           );
-          // Set the isExtracting flag to false to indicate that content extraction is complete
-          actions.setIsExtracting(false);
         }
       }
       // Handle OpenPerplex search provider
@@ -383,7 +377,6 @@ The user asked: "${userMessage}"`;
 
       // Reset loading states since search is complete
       actions.setIsSearching(false);
-      actions.setIsExtracting(false);
     }
 
     if (state.reasoningEnabled) {
@@ -569,7 +562,6 @@ ${
     console.error("Chat Submit Handler - Error:", error);
     // Reset loading states
     actions.setIsSearching(false);
-    actions.setIsExtracting(false);
     actions.setMessages((prev) => [
       ...prev,
       {

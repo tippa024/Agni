@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef, FC } from 'react';
+import { useState, useEffect } from 'react';
 import { Source_Serif_4 } from 'next/font/google';
 import { formatOutput } from '../lib/utils/outputFormatter';
 
@@ -7,15 +7,7 @@ const sourceSerif4 = Source_Serif_4({
     weight: ['400', '600', '700'],
 });
 
-// Helper function to extract domain from URL
-const getDomain = (url: string): string => {
-    try {
-        const domain = new URL(url).hostname.replace('www.', '');
-        return domain.split('.')[0];
-    } catch {
-        return '';
-    }
-};
+
 
 interface SearchResult {
     title: string;
@@ -29,11 +21,10 @@ interface MessageBubbleProps {
     content: string;
     context?: SearchResult[];
     isSearching?: boolean;
-    isExtracting?: boolean;
     formattedContent?: string;
 }
 
-export function MessageBubble({ role, content, context = [], isSearching, isExtracting }: MessageBubbleProps) {
+export function MessageBubble({ role, content, context = [], isSearching }: MessageBubbleProps) {
     const [showAllSources, setShowAllSources] = useState(false);
     const [isReasoningCollapsed, setIsReasoningCollapsed] = useState(true);
     const [messageContent, setMessageContent] = useState<{ reasoning?: string; answer?: string }>({});
@@ -106,13 +97,12 @@ export function MessageBubble({ role, content, context = [], isSearching, isExtr
         );
     }
 
-    if (isSearching || isExtracting) {
+    if (isSearching) {
         return (
             <div className="flex justify-start mb-4">
                 <div className="flex items-center gap-2 px-4 py-2">
                     <span className={`text-xs text-[#4A4235]/60 ${sourceSerif4.className}`}>
-                        {isSearching && 'Searching web...'}
-                        {isExtracting && 'Extracting content...'}
+                        Searching web...
                     </span>
                     <span className="flex gap-1">
                         {[0, 0.3, 0.6].map((delay) => (

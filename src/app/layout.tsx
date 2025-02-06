@@ -12,20 +12,20 @@ export const viewport: Viewport = {
 };
 
 export const metadata: Metadata = {
-  title: "AI Assistant",
-  description: "An intelligent assistant powered by DeepSeek and Tavily",
+  title: "AGNI",
+  description: "Helping Humans be more Human",
   metadataBase: new URL("http://localhost:3000"),
   openGraph: {
-    title: "AI Assistant",
-    description: "An intelligent assistant powered by DeepSeek and Tavily",
+    title: "AGNI",
+    description: "Helping Humans be more Human",
     url: "http://localhost:3000",
-    siteName: "AI Assistant",
+    siteName: "AGNI",
     locale: "en_US",
     type: "website",
   },
   twitter: {
-    title: "AI Assistant",
-    description: "An intelligent assistant powered by DeepSeek and Tavily",
+    title: "AGNI",
+    description: "Helping Humans be more Human",
     card: "summary_large_image",
   },
   robots: {
