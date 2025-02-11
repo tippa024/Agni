@@ -1,112 +1,71 @@
-import { NextRequest, NextResponse } from "next/server";
+import { NextRequest } from "next/server";
 
-interface SearchOptions {
-  maxResults?: number;
-  location?: string;
-  pro_mode?: boolean;
-  response_language?: string;
-  answer_type?: string;
-  search_type?: string;
-  verbose_mode?: boolean;
-  return_sources?: boolean;
-  return_images?: boolean;
-  return_citations?: boolean;
-  recency_filter?: string;
+// Validate API key at startup
+const apiKey = process.env.OPENPERPLEX_API_KEY;
+if (!apiKey) {
+  throw new Error("OPENPERPLEX_API_KEY is not configured");
 }
 
-export async function POST(req: NextRequest) {
+export const runtime = "edge";
+
+export async function POST(request: NextRequest) {
   try {
-    const {
-      query,
-      maxResults = 5,
-      location = "us",
-      pro_mode = false,
-      response_language = "en",
-      answer_type = "text",
-      search_type = "general",
-      verbose_mode = false,
-      return_sources = true,
-      return_images = false,
-      return_citations = true,
-      recency_filter = "anytime",
-    } = await req.json();
+    const refinedsearchdata = await request.json();
+    //console.log("Received search data:", refinedsearchdata);
 
-    if (!query) {
-      return NextResponse.json({ error: "Query is required" }, { status: 400 });
-    }
+    // Process parameters
+    const params = {
+      query: refinedsearchdata.query,
+      return_citations: String(refinedsearchdata.return_citations),
+      return_sources: String(refinedsearchdata.return_sources),
+      verbose_mode: String(refinedsearchdata.verbose_mode),
+      search_type: refinedsearchdata.search_type,
+      answer_type: refinedsearchdata.answer_type,
+      response_language: refinedsearchdata.response_language,
+      pro_mode: String(refinedsearchdata.pro_mode),
+      location: refinedsearchdata.location,
+      date_context: refinedsearchdata.date_context,
+    };
 
-    const apiKey = process.env.OPENPERPLEX_API_KEY;
-    if (!apiKey) {
-      return NextResponse.json(
-        { error: "OpenPerplex API key is not configured" },
-        { status: 500 }
-      );
-    }
+    const queryString = Object.entries(params)
+      .map(
+        ([key, value]) =>
+          `${encodeURIComponent(key)}=${encodeURIComponent(
+            String(value)
+          ).replace(/\+/g, "%20")}`
+      )
+      .join("&");
 
-    // The correct OpenPerplex API endpoint and parameters
-    const baseUrl =
-      "https://44c57909-d9e2-41cb-9244-9cd4a443cb41.app.bhs.ai.cloud.ovh.net";
-    const params = new URLSearchParams({
-      query,
-      location,
-      pro_mode: pro_mode.toString(),
-      response_language,
-      answer_type,
-      search_type,
-      verbose_mode: verbose_mode.toString(),
-      return_sources: return_sources.toString(),
-      return_images: return_images.toString(),
-      return_citations: return_citations.toString(),
-      recency_filter,
-      date_context: new Date().toISOString(),
-    });
+    console.log("Final query string:", queryString);
 
-    const response = await fetch(`${baseUrl}/search?${params}`, {
-      method: "GET",
-      headers: {
-        "X-API-Key": apiKey,
-        "Content-Type": "application/json",
-      },
-    });
+    const response = await fetch(
+      `https://44c57909-d9e2-41cb-9244-9cd4a443cb41.app.bhs.ai.cloud.ovh.net/search?${queryString}`,
+      {
+        method: "GET",
+        headers: {
+          "X-API-Key": apiKey as string,
+        },
+      }
+    );
 
     if (!response.ok) {
       const errorText = await response.text();
-      console.error("OpenPerplex API error:", errorText);
-      throw new Error(`OpenPerplex API request failed: ${response.status}`);
-    }
-
-    const data = await response.json();
-
-    // Transform the response to match our expected format
-    const results = [];
-
-    // Add sources if they exist
-    if (data.sources && Array.isArray(data.sources)) {
-      results.push(
-        ...data.sources.map((source: any) => ({
-          url: source.url || "",
-          title: source.title || source.url || "No title",
-          content: source.snippet || source.text || "",
-          score: source.relevance_score || 1.0,
-          metadata: {
-            published_date: source.published_date,
-            author: source.author,
-            ...source.metadata,
-          },
-        }))
+      console.error("OpenPerplex API error:", {
+        status: response.status,
+        statusText: response.statusText,
+        error: errorText,
+      });
+      throw new Error(
+        `OpenPerplex API error: ${response.status} - ${errorText}`
       );
     }
 
-    return NextResponse.json({
-      results,
-      llm_response: data.llm_response,
-      response_time: data.response_time,
-      images: data.images || [],
-    });
-  } catch (error) {
-    console.error("OpenPerplex search error:", error);
-    return NextResponse.json(
-      { error: "Failed to perform search" },
+    const data = await response.json();
+    return Response.json(data);
+  } catch (error: any) {
+    console.error("OpenPerplex Search Error:", error);
+    return new Response(
+      JSON.stringify({ error: error.message || "Search failed" }),
       { status: 500 }
     );
   }

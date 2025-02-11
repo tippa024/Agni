@@ -1,6 +1,5 @@
 import { OpenAI } from "openai";
 import { StreamingTextResponse } from "ai";
-import { ChatCompletionMessageParam } from "openai/resources/chat/completions";
 
 // Types
 interface DeepSeekDelta {
@@ -32,7 +31,8 @@ export async function POST(req: Request) {
   }
 
   try {
-    const { messages, reasoningEnabled } = await req.json();
+    const { messages, reasoningEnabled, currentProcessingStep } =
+      await req.json();
 
     console.log("[DeepSeek] Reasoning enabled:", reasoningEnabled);
 
@@ -47,14 +47,10 @@ export async function POST(req: Request) {
       ...(reasoningEnabled && {
         reasoning: true,
         show_reasoning: true,
-        temperature: 0.7,
+        temperature:
+          currentProcessingStep === "Refining Search Query" ? 0.2 : 0.7,
       }),
     })) as any;
-
-    console.log(
-      "[DeepSeek] Using model:",
-      reasoningEnabled ? "deepseek-reasoner" : "deepseek-chat"
-    );
 
     const stream = new ReadableStream({
       async start(controller) {

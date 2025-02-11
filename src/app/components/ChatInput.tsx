@@ -1,6 +1,6 @@
 import { Switch } from "./ui/Switch";
 import { Label } from "./ui/Label";
-import { Dispatch, SetStateAction } from "react";
+import { Dispatch, SetStateAction, useState, memo } from "react";
 
 interface ChatInputProps {
     input: string;
@@ -15,18 +15,18 @@ interface ChatInputProps {
     setSearchProvider: Dispatch<SetStateAction<"tavily" | "openperplex">>;
 }
 
-export function ChatInput({
+export const UserInput = memo(function UserInput({
     input,
     searchEnabled,
     reasoningEnabled,
-    searchProvider,
     font,
     handleSubmit,
     setInput,
     setSearchEnabled,
     setReasoningEnabled,
-    setSearchProvider,
 }: ChatInputProps) {
+
+
     const handleFormSubmit = (e: React.FormEvent) => {
         e.preventDefault();
         if (!input.trim()) return;
@@ -35,7 +35,6 @@ export function ChatInput({
         console.log('Chat Input Config:', {
             userQuery: input.trim(),
             searchEnabled,
-            ...(searchEnabled && { searchProvider }),
             reasoningEnabled
         });
         handleSubmit(e);
@@ -49,7 +48,7 @@ export function ChatInput({
             <div className="relative flex items-center gap-3 bg-white rounded-xl border border-[#4A4235]/15 shadow-sm hover:shadow-md transition-all duration-300 w-full group focus-within:border-[#4A4235]/30 focus-within:shadow-lg">
                 {/* Control Toggles */}
                 <div className="flex items-center gap-1.5 p-3">
-                    <div className="flex flex-col gap-2 w-[180px] pr-3 border-r border-[#4A4235]/10 my-2">
+                    <div className="flex flex-col gap-2  w-[140px] border-r border-[#4A4235]/10 my-2">
                         <div className="flex items-start gap-2">
                             <Switch
                                 checked={searchEnabled}
@@ -60,18 +59,6 @@ export function ChatInput({
                                 <Label className={`text-sm transition-opacity duration-200 ${searchEnabled ? 'text-[#4A4235] font-medium opacity-100' : 'text-[#4A4235] opacity-50'}`}>
                                     Search
                                 </Label>
-                                {searchEnabled && (
-                                    <button
-                                        type="button"
-                                        className={`ml-1.5 text-xs font-medium px-2 py-0.5 rounded-full transition-all ${searchProvider === 'openperplex'
-                                            ? 'bg-gradient-to-r from-amber-500/20 to-amber-600/20 text-amber-700 hover:from-amber-500/30 hover:to-amber-600/30 hover:text-amber-800 shadow-sm'
-                                            : 'bg-[#4A4235]/5 text-[#4A4235]/60 hover:bg-[#4A4235]/10 hover:text-[#4A4235]/80'
-                                            }`}
-                                        onClick={() => setSearchProvider(searchProvider === 'tavily' ? 'openperplex' : 'tavily')}
-                                    >
-                                        {searchProvider === 'openperplex' ? 'PRO' : 'Basic'}
-                                    </button>
-                                )}
                             </div>
                         </div>
                         <div className="flex items-center gap-2">
@@ -134,4 +121,4 @@ export function ChatInput({
             </div>
         </form>
     )
-}
+});

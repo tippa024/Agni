@@ -2,13 +2,10 @@
 
 import { useState, useRef, useEffect } from 'react';
 import { Source_Serif_4 } from 'next/font/google';
-import { useTavilySearch } from './hooks/useTavilySearch';
-import { useTavilyExtract } from './hooks/useTavilyExtract';
-import { useOpenPerplexSearch } from './hooks/useOpenPerplexSearch';
-import { TavilySearchOptions, OpenPerplexSearchOptions } from './hooks/useSearch';
 import { MessageBubble } from './components/MessageBubble';
-import { ChatInput } from './components/ChatInput';
-import { handleChatSubmit } from './lib/handlers/chatSubmitHandler';
+import { UserInput } from './components/ChatInput';
+import { handleRawUserInput } from './lib/handlers/chatSubmitHandler';
+import { systemMessage } from './lib/utils/promt';
 
 const sourceSerif4 = Source_Serif_4({
   subsets: ['latin'],
@@ -17,73 +14,69 @@ const sourceSerif4 = Source_Serif_4({
 
 interface SearchResult {
   title: string;
-  content: string;
-  url: string;
-  score: number;
+  link: string;
+  snippet: string;
+
 }
 
 interface Message {
+  index: number;
   role: 'user' | 'assistant' | 'system';
   content: string;
-  context?: SearchResult[];
+  additionalInfo?: {
+    externalLinks?: SearchResult[];
+    Context?: string;
+  };
 }
 
-// Add constant system message
-const systemMessage = {
-  role: "system",
-  content: "You are a helpful assistant that provides clear, focused responses. For factual questions, you give direct answers with sources. For complex topics, you break down explanations into clear sections. You use simple language and note any uncertainties."
-};
 
 export default function Home() {
-  const [messages, setMessages] = useState<Message[]>([]);
   const [input, setInput] = useState('');
-  const [isSearching, setIsSearching] = useState(false);
-  const [isExtracting, setIsExtracting] = useState(false);
+  const [messages, setMessages] = useState<Message[]>([]);
+  const [currentProcessingStep, setCurrentProcessingStep] = useState<string>('');
   const [currentSearchResults, setCurrentSearchResults] = useState<SearchResult[]>([]);
-  const [searchEnabled, setSearchEnabled] = useState(false);
-  const [reasoningEnabled, setReasoningEnabled] = useState(false);
-  const [searchProvider, setSearchProvider] = useState<'tavily' | 'openperplex'>('tavily');
+
+  // Group user preferences into a single object
+  const [userPreferences, setUserPreferences] = useState({
+    searchEnabled: false,
+    reasoningEnabled: false,
+    model: 'gpt-4o-mini' as '4o-mini' | 'gpt-4o' as '4o' | 'deepseek-chat' as 'deepseek-chat' | 'claude-3-5-sonnet' as 'sonnet' | 'deepseek-reasoning' as 'deepseek-reasoning',
+    searchProvider: 'tavily' as 'tavily' | 'openperplex' as 'openperplex'
+  });
+
   const [chatHistory, setChatHistory] = useState<{ role: string; content: string }[]>([systemMessage]);
 
-  const { search: tavilySearch } = useTavilySearch();
-  const { search: openPerplexSearch } = useOpenPerplexSearch();
-  const { extract: rawExtract } = useTavilyExtract();
-
-  // Wrap extract to handle undefined case
-  const extract = async (urls: string[]) => {
-    const result = await rawExtract(urls);
-    return result || { results: [] };
+  // Helper functions to update individual preferences
+  const updatePreference = (key: keyof typeof userPreferences) => (value: any) => {
+    setUserPreferences(prev => ({
+      ...prev,
+      [key]: value
+    }));
   };
 
+  // Destructure preferences for easier access
+  const { searchEnabled, reasoningEnabled, searchProvider } = userPreferences;
+
   const onSubmit = async (e: React.FormEvent) => {
-    await handleChatSubmit(
+    await handleRawUserInput(
       e,
       // State object
       {
         messages,
         input,
-        isSearching,
-        isExtracting,
+        currentProcessingStep,
         currentSearchResults,
         searchEnabled,
         reasoningEnabled,
-        searchProvider,
         chatHistory,
       },
       // Actions object
       {
         setMessages,
         setInput,
-        setIsSearching,
-        setIsExtracting,
+        setCurrentProcessingStep,
         setCurrentSearchResults,
         setChatHistory,
-      },
-      // Handlers object
-      {
-        tavilySearch,
-        openPerplexSearch,
-        extract,
       }
     );
   };
@@ -96,6 +89,14 @@ export default function Home() {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [messages]);
 
+
+  {/*  useEffect(() => {
+    console.log("Initial system message:", systemMessage);
+    if (!chatHistory.length) {
+      setChatHistory([systemMessage]);
+    }
+  }, []); */}
+
   return (
     <main className="flex min-h-screen w-screen flex-col bg-white">
       {messages.length === 0 ? (
@@ -106,7 +107,7 @@ export default function Home() {
               Ask me anything
             </h1>
             <div className="transform transition-all duration-300 ease-in-out hover:scale-[1.01]">
-              <ChatInput
+              <UserInput
                 input={input}
                 searchEnabled={searchEnabled}
                 reasoningEnabled={reasoningEnabled}
@@ -114,9 +115,9 @@ export default function Home() {
                 font={sourceSerif4}
                 handleSubmit={onSubmit}
                 setInput={setInput}
-                setSearchEnabled={setSearchEnabled}
-                setReasoningEnabled={setReasoningEnabled}
-                setSearchProvider={setSearchProvider}
+                setSearchEnabled={(value) => updatePreference('searchEnabled')(value)}
+                setReasoningEnabled={(value) => updatePreference('reasoningEnabled')(value)}
+                setSearchProvider={(value) => updatePreference('searchProvider')(value)}
               />
             </div>
           </div>
@@ -126,16 +127,24 @@ export default function Home() {
         <div className="flex flex-col h-screen">
           <div className="flex-1 w-full max-w-3xl mx-auto px-4 overflow-hidden overflow-wrap-break-word">
             <div className="h-full py-4 overflow-y-auto scrollbar-hide">
-              <div className="space-y-4 pb-2">
+              <div className="space-y-4 pb-2 border-4 border-red-500">
                 {messages.map((message, index) => (
-                  <MessageBubble
-                    key={index}
-                    role={message.role}
-                    content={message.content}
-                    context={message.context}
-                    isSearching={message.role === 'assistant' && index === messages.length - 1 && isSearching}
-                    isExtracting={message.role === 'assistant' && index === messages.length - 1 && isExtracting}
-                  />
+                  <div className='border-2 border-blue-500'>
+                    <MessageBubble
+                      key={index}
+                      messageIndex={index}
+                      role={message.role}
+                      content={message.content}
+                      additionalInfo={message.additionalInfo}
+                      currentProcessingStep={
+                        message.role === 'assistant' &&
+                          index === messages.length - 1 ?
+                          currentProcessingStep :
+                          ''
+                      }
+                      userPreferences={userPreferences}
+                    />
+                  </div>
                 ))}
                 <div ref={messagesEndRef} />
               </div>
@@ -144,7 +153,7 @@ export default function Home() {
 
           <div className="sticky bottom-0 left-0 right-0 bg-white p-4 sm:pb-6 border-t border-gray-200">
             <div className="max-w-3xl mx-auto">
-              <ChatInput
+              <UserInput
                 input={input}
                 searchEnabled={searchEnabled}
                 reasoningEnabled={reasoningEnabled}
@@ -152,9 +161,9 @@ export default function Home() {
                 font={sourceSerif4}
                 handleSubmit={onSubmit}
                 setInput={setInput}
-                setSearchEnabled={setSearchEnabled}
-                setReasoningEnabled={setReasoningEnabled}
-                setSearchProvider={setSearchProvider}
+                setSearchEnabled={(value) => updatePreference('searchEnabled')(value)}
+                setReasoningEnabled={(value) => updatePreference('reasoningEnabled')(value)}
+                setSearchProvider={(value) => updatePreference('searchProvider')(value)}
               />
             </div>
           </div>

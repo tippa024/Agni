@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, memo, useRef } from 'react';
 import { Source_Serif_4 } from 'next/font/google';
 import { formatOutput } from '../lib/utils/outputFormatter';
 
@@ -11,20 +11,53 @@ const sourceSerif4 = Source_Serif_4({
 
 interface SearchResult {
     title: string;
-    content: string;
-    url: string;
-    score: number;
+    link: string;
+    snippet: string;
 }
 
 interface MessageBubbleProps {
     role: 'user' | 'assistant' | 'system';
     content: string;
-    context?: SearchResult[];
-    isSearching?: boolean;
-    formattedContent?: string;
+    messageIndex: number;
+    additionalInfo?: {
+        WebsiteLinks?: SearchResult[];
+        Context?: string;
+    };
+    currentProcessingStep?: string;
+    userPreferences?: {
+        searchEnabled: boolean;
+        reasoningEnabled: boolean;
+        model: string;
+    };
 }
 
-export function MessageBubble({ role, content, context = [], isSearching }: MessageBubbleProps) {
+console.log("MessageBubble re-rendered");
+
+let count = 0;
+
+
+
+// Memoize MessageBubble since it only needs to re-render when its props change
+export const MessageBubble = memo(function MessageBubble({
+    role,
+    content,
+    messageIndex,
+    additionalInfo,
+    currentProcessingStep,
+    userPreferences = {
+        searchEnabled: false,
+        reasoningEnabled: false,
+        model: 'gpt-4o-mini',
+    }
+}: MessageBubbleProps) {
+
+    count++;
+
+    //console.log("content", content);
+    //console.log("the number of times this funtion was used", count);
+    //console.log("currentProcessingStep", currentProcessingStep);
+
+
     const [showAllSources, setShowAllSources] = useState(false);
     const [isReasoningCollapsed, setIsReasoningCollapsed] = useState(true);
     const [messageContent, setMessageContent] = useState<{ reasoning?: string; answer?: string }>({});
@@ -32,49 +65,33 @@ export function MessageBubble({ role, content, context = [], isSearching }: Mess
     const [isCopied, setIsCopied] = useState(false);
     const isAssistant = role === 'assistant';
 
+    // Use ref to persist count between renders
+    const effectRunCount = useRef(0);
+
     // Parse content sections
     useEffect(() => {
-        if (isAssistant && content && content !== 'search-results') {
-            try {
-                // Split content based on clear markers
-                const sections = content.split(/(?=Reasoning:|Answer:)/i);
-                let reasoning = '';
-                let answer = '';
+        if (isAssistant && content) {
 
-                // Process each section
-                sections.forEach(section => {
-                    const cleanSection = section.trim();
-                    if (/^Reasoning:/i.test(cleanSection)) {
-                        reasoning = cleanSection.replace(/^Reasoning:\s*/i, '').trim();
-                    } else if (/^Answer:/i.test(cleanSection)) {
-                        answer = cleanSection.replace(/^Answer:\s*/i, '').trim();
-                    } else if (!reasoning && !answer) {
-                        // If no markers found and it's the first section, treat as answer
-                        answer = cleanSection;
-                    }
-                });
+            effectRunCount.current += 1;  // Increment the ref value
 
-                // Format both reasoning and answer sections if they exist
-                const formattedReasoning = reasoning ? formatOutput(reasoning) : '';
-                const formattedAnswer = answer ? formatOutput(answer) : '';
+            console.log(`content on run #${effectRunCount.current} for message ${messageIndex}:`, content);
 
-                setMessageContent({
-                    reasoning: formattedReasoning,
-                    answer: formattedAnswer || formatOutput(content) // Fallback to full content if no answer section
-                });
+            // Clean the content by removing JSON-like formatting
+            const cleanContent = content.replace(/(?:\d+:"([^"]+)"\s*(?:↵)?)+/g, '$1 ');
 
-                // Set word count for reasoning section if it exists
-                setWordCount(reasoning ? reasoning.split(/\s+/).length : 0);
+            // Split into reasoning and answer if needed
+            const parts = content.split(/\n*Reasoning:\s*|\n*Answer:\s*/);
 
-            } catch (error) {
-                console.error('Error parsing content sections:', error);
-                // Fallback to treating entire content as answer
-                setMessageContent({
-                    answer: formatOutput(content)
-                });
-            }
+            setMessageContent({
+                reasoning: parts.length > 1 ? formatOutput(parts[1]) : '',
+                answer: formatOutput(parts[parts.length - 1])
+            });
+            console.log("messageContent from messagebubble", messageContent);
+
+            // Calculate word count
+            setWordCount(content.split(/\s+/).length);
         }
-    }, [content, isAssistant]);
+    }, [content, isAssistant, messageIndex]);
 
     const handleCopy = async () => {
         try {
@@ -88,6 +105,7 @@ export function MessageBubble({ role, content, context = [], isSearching }: Mess
 
     // User message
     if (!isAssistant) {
+
         return (
             <div className="flex justify-end mb-4">
                 <div className="max-w-2xl px-4 py-2">
@@ -96,46 +114,44 @@ export function MessageBubble({ role, content, context = [], isSearching }: Mess
             </div>
         );
     }
-
-    if (isSearching) {
-        return (
-            <div className="flex justify-start mb-4">
-                <div className="flex items-center gap-2 px-4 py-2">
-                    <span className={`text-xs text-[#4A4235]/60 ${sourceSerif4.className}`}>
-                        Searching web...
-                    </span>
-                    <span className="flex gap-1">
-                        {[0, 0.3, 0.6].map((delay) => (
-                            <span
-                                key={delay}
-                                className="h-1 w-1 rounded-full bg-[#4A4235]/40 animate-pulse"
-                                style={{ animationDelay: `${delay}s` }}
-                            />
-                        ))}
-                    </span>
-                </div>
+    // Loading state - only show for the last assistant message
+    {
+        (userPreferences?.searchEnabled && currentProcessingStep === 'searching') && (
+            <div className="flex items-center gap-2">
+                <span className={`text-xs text-[#b3b2b0] ${sourceSerif4.className}`}>
+                    "vethukutuna" {currentProcessingStep}
+                </span>
+                <span className="flex gap-1">
+                    {[0, 0.3, 0.6].map((delay) => (
+                        <span
+                            key={delay}
+                            className="h-1 w-1 rounded-full bg-[#b5b4b2] animate-pulse"
+                            style={{ animationDelay: `${delay}s` }}
+                        />
+                    ))}
+                </span>
             </div>
-        );
+        )
     }
 
     // Search results message
-    if (context && context.length > 0) {
+    if (additionalInfo?.WebsiteLinks && additionalInfo.WebsiteLinks.length > 0) {
+        const externalLinks = additionalInfo.WebsiteLinks;
         return (
             <div className="flex justify-start mb-8">
                 <div className="w-full max-w-3xl bg-[#F5F5F5] border border-[#2C2C2C] px-4 py-3">
                     <div className="flex items-center justify-between mb-3 border-b border-[#2C2C2C] pb-2">
                         <span className="text-sm font-mono text-[#2C2C2C] uppercase">
-                            Sources [{context.length}]
+                            Sources [{externalLinks.length}]
                         </span>
                     </div>
-
                     <div className="space-y-4 max-h-[400px] overflow-y-auto">
-                        {(showAllSources ? context : context.slice(0, 3)).map((result, index) => (
+                        {(showAllSources ? externalLinks : externalLinks.slice(0, 3)).map((result: SearchResult, index: number) => (
                             <div key={index} className="border-b border-[#2C2C2C]/20 pb-3 last:border-0">
                                 <div className="flex items-baseline gap-2 mb-1">
                                     <span className="font-mono text-sm text-[#2C2C2C]">{index + 1}.</span>
                                     <a
-                                        href={result.url}
+                                        href={result.link}
                                         target="_blank"
                                         rel="noopener noreferrer"
                                         className="text-sm text-[#2C2C2C] hover:underline font-mono"
@@ -144,18 +160,18 @@ export function MessageBubble({ role, content, context = [], isSearching }: Mess
                                     </a>
                                 </div>
                                 <p className="text-sm text-[#2C2C2C]/80 pl-4 font-mono">
-                                    {result.content}
+                                    {result.snippet}
                                 </p>
                             </div>
                         ))}
                     </div>
 
-                    {context.length > 3 && (
+                    {externalLinks.length > 3 && (
                         <button
                             onClick={() => setShowAllSources(!showAllSources)}
                             className="mt-3 text-xs font-mono text-[#2C2C2C]/70 hover:text-[#2C2C2C]"
                         >
-                            {showAllSources ? '[ - SHOW LESS - ]' : `[ + SHOW ${context.length - 3} MORE ]`}
+                            {showAllSources ? '[ - SHOW LESS - ]' : `[ + SHOW ${externalLinks.length - 3} MORE ]`}
                         </button>
                     )}
                 </div>
@@ -179,11 +195,31 @@ export function MessageBubble({ role, content, context = [], isSearching }: Mess
         );
     }
 
-    // Final return statement for assistant message
+    // Regular assistant message
+
     return (
         <div className="flex justify-start mb-12">
             <div className="w-[90%] rounded-sm bg-white px-8 py-6 shawdow-sm border border-white">
-                <div className="mb-2 text-sm font-mono uppercase tracking-wide text-[#2C2C2C]">Machine</div>
+                <div className="flex items-center justify-between mb-4">
+                    <div className="text-sm font-mono uppercase tracking-wide text-[#2C2C2C]">AGNI</div>
+                    {currentProcessingStep && currentProcessingStep !== '' && (
+                        <div className="flex items-center gap-2">
+                            <span className={`text-xs text-[#b3b2b0] ${sourceSerif4.className}`}>
+                                "helloeeew" {currentProcessingStep}
+                            </span>
+                            <span className="flex gap-1">
+                                {[0, 0.3, 0.6].map((delay) => (
+                                    <span
+                                        key={delay}
+                                        className="h-1 w-1 rounded-full bg-[#b5b4b2] animate-pulse"
+                                        style={{ animationDelay: `${delay}s` }}
+                                    />
+                                ))}
+                            </span>
+                        </div>
+                    )}
+                </div>
+
                 {/* Thinking/Reasoning Section - Only show if reasoning content exists */}
                 {messageContent.reasoning && (
                     <div className="mb-6">
@@ -259,4 +295,4 @@ export function MessageBubble({ role, content, context = [], isSearching }: Mess
             </div>
         </div>
     );
-} 
+}); 

@@ -1,26 +1,30 @@
-// Import types for search functionality
-import {
-  SearchResult,
-  TavilySearchOptions,
-  OpenPerplexSearchOptions,
-} from "@/app/hooks/useSearch";
+import { systemMessage } from "../utils/promt";
+
+interface SearchResult {
+  title: string;
+  link: string;
+  snippet: string;
+}
 
 // Define the structure of a chat message
 interface Message {
+  index: number;
   role: "user" | "assistant" | "system";
   content: string;
-  context?: SearchResult[];
+  additionalInfo?: {
+    externalLinks?: SearchResult[];
+    Context?: string;
+  };
 }
 
 // Define the state shape for the chat interface
 interface ChatState {
   messages: Message[];
   input: string;
-  isSearching: boolean;
+  currentProcessingStep: string;
   currentSearchResults: SearchResult[];
   searchEnabled: boolean;
   reasoningEnabled: boolean;
-  searchProvider: "tavily" | "openperplex";
   chatHistory: { role: string; content: string }[];
 }
 
@@ -28,24 +32,11 @@ interface ChatState {
 interface ChatActions {
   setMessages: (messages: Message[] | ((prev: Message[]) => Message[])) => void;
   setInput: (input: string) => void;
-  setIsSearching: (isSearching: boolean) => void;
+  setCurrentProcessingStep: (currentProcessingStep: string) => void;
   setCurrentSearchResults: (results: SearchResult[]) => void;
   setChatHistory: (
     history: { role: string; content: string }[] | ((prev: any[]) => any[])
   ) => void;
-}
-
-// Define the search-related functions that can be used
-interface SearchHandlers {
-  tavilySearch: (
-    query: string,
-    options: TavilySearchOptions
-  ) => Promise<{ results: SearchResult[] }>;
-  openPerplexSearch: (
-    query: string,
-    options: OpenPerplexSearchOptions
-  ) => Promise<{ results: SearchResult[]; llm_response?: string }>;
-  extract: (urls: string[]) => Promise<{ results: { raw_content: string }[] }>;
 }
 
 // Helper function to extract domain from URL
@@ -58,27 +49,15 @@ function getDomain(url: string) {
   }
 }
 
-// Default system message for the AI assistant
-const systemMessage = {
-  role: "system",
-  content:
-    "You are a helpful assistant that provides clear, focused responses. For factual questions, you give direct answers with sources. For complex topics, you break down explanations into clear sections. You use simple language and note any uncertainties.",
-};
+console.log("chatSubmitHandler re-rendered");
 
 // Main function to handle chat form submissions
-export async function handleChatSubmit(
-  e: React.FormEvent, // 'e' is the parameter name representing the event object, and 'React.FormEvent' is the type annotation indicating that 'e' is a form event in React. A form event is an event that occurs when a user interacts with a form element, such as submitting a form.
+export async function handleRawUserInput(
+  e: React.FormEvent,
   state: ChatState,
-  actions: ChatActions,
-  handlers: SearchHandlers
+  actions: ChatActions
 ) {
-  // Log the start of chat submission with relevant details
-  console.log("Chat Submit Handler - Starting", {
-    input: state.input,
-    searchEnabled: state.searchEnabled,
-    ...(state.searchEnabled && { searchProvider: state.searchProvider }),
-    reasoningEnabled: state.reasoningEnabled,
-  });
+  actions.setCurrentProcessingStep("Understanding User Input");
 
   // Prevent form default behavior and validate input
   e.preventDefault();
@@ -91,12 +70,16 @@ export async function handleChatSubmit(
   // Add user message to chat history
   actions.setMessages((prev) => [
     ...prev,
-    { role: "user", content: userMessage },
+    {
+      index: Date.now(),
+      role: "user",
+      content: userMessage,
+    },
   ]);
 
   try {
     let contextualizedInput = userMessage;
-    let context = {
+    let searchContext = {
       results: [] as SearchResult[],
       extractedContent: "",
       refinedQuery: userMessage,
@@ -104,26 +87,121 @@ export async function handleChatSubmit(
 
     // If search is enabled, perform search operations
     if (state.searchEnabled) {
-      console.log("Search Phase - Starting", {
-        provider: state.searchProvider,
-      });
-      // Call API to refine the user's query for better search results
-      const response = await fetch("/api/chat", {
-        method: "POST", // Use the POST method to send data to the server
-        headers: { "Content-Type": "application/json" }, // Set the content type to JSON
+      // console.log("Search Phase - Starting - Refining User Input", {});
+
+      actions.setCurrentProcessingStep("Refining Search Query");
+
+      console.log("Current Processing Step:", state.currentProcessingStep);
+
+      const searchParameters = {
+        name: "search_parameters",
+        schema: {
+          type: "object",
+          properties: {
+            query: {
+              type: "string",
+              description:
+                "The search query or question you want to ask. This is the primary input for your search. Be as specific as possible in your query.",
+            },
+            date_context: {
+              type: "string",
+              description: "Optional date for context.",
+            },
+            location: {
+              type: "string",
+              description:
+                "Country code for search context. This helps in providing localized results.",
+            },
+            pro_mode: {
+              type: "boolean",
+              description:
+                "Enable or disable pro mode for more advanced search capabilities.",
+            },
+            response_language: {
+              type: "string",
+              description:
+                "Language code for the response. 'auto' will auto-detect based on the query.",
+            },
+            answer_type: {
+              type: "string",
+              description:
+                "Format of the answer. Options: 'text', 'markdown', or 'html'.",
+            },
+            search_type: {
+              type: "string",
+              description: "Type of the search: general or news.",
+            },
+            verbose_mode: {
+              type: "boolean",
+              description:
+                "Set verbose_mode parameter to True to get more detailed information in the response.",
+            },
+            return_citations: {
+              type: "boolean",
+              description: "Include citations in the response.",
+            },
+            return_sources: {
+              type: "boolean",
+              description: "Return sources.",
+            },
+            return_images: {
+              type: "boolean",
+              description:
+                "Return images if provided in the response (depends on the search query and the google API).",
+            },
+            recency_filter: {
+              type: "string",
+              description:
+                "Can be hour, day, week, month, year, anytime. Impacts the search results recency.",
+            },
+          },
+          required: [
+            "query",
+            "date_context",
+            "location",
+            "pro_mode",
+            "response_language",
+            "answer_type",
+            "search_type",
+            "verbose_mode",
+            "return_citations",
+            "return_sources",
+            "return_images",
+            "recency_filter",
+          ],
+          additionalProperties: false,
+        },
+        strict: true,
+      };
+
+      // Before making the OpenAI API call
+
+      console.log("=== Starting Query Refinement ===");
+      console.log("User Query:", userMessage);
+
+      const response = await fetch("/api/OpenAI/SearchQueryRefinement", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          // Convert the message object to a JSON string
-          // This prompt is designed to refine the user's query and generate search options for either Tavily or OpenPerplex search APIs.
-          // It can be further optimized to get a particular behaviour/output, such as prioritizing certain types of information or sources.
           messages: [
             {
               role: "system",
               content: `You are a specialized LLM that refines user queries to maximize search result quality.
-                        
-Your task is to optimize the user's query for the ${
-                state.searchProvider
-              } search API.
-The current date is ${
+
+Your task is to analyze the user's query and provide refined search parameters. These parameters will be used to optimize search results. The parameters you should focus on are:
+
+- system_prompt: The system prompt is the prompt that will be used to generate the response.
+- user_prompt: The user prompt is the prompt that will be used to perform the web search. Be as specific as possible and let the system prompt handle the details of the response.
+- location: Country code for search context. This helps in providing localized results.
+- pro_mode: Enable or disable pro mode for more advanced search capabilities.
+- search_type: Type of the search: general or news.
+- temperature: The amount of randomness in the response, valued between 0 inclusive and 1 exclusive. Higher values are more random, and lower values are more deterministic.
+- top_p: The nucleus sampling threshold, valued between 0 and 1 inclusive.
+- return_sources: Return Sources
+- return_images: Return Images
+- recency_filter: Can be hour, day, week, month, year, anytime. Impact the search results recency.
+
+The current day is  and date is ${
                 new Date().toISOString().split("T")[0]
               } and the current time is ${
                 new Date().toISOString().split("T")[1].split(".")[0]
@@ -132,201 +210,119 @@ The current date is ${
 Consider the chat history for context:
 ${JSON.stringify(state.chatHistory)}
 
-Return ONLY a valid JSON object with the following properties:
-1. "refinedQuery" (string):
-   - A clear and focused search query, optimized for relevance.
+Provide your response as a JSON object with the refined query and all applicable search parameters.
 
-2. "searchOptions" (object) with ${
-                state.searchProvider === "tavily"
-                  ? "ONLY these valid Tavily parameters:"
-                  : "ONLY these valid OpenPerplex parameters:"
-              }
-   ${
-     state.searchProvider === "tavily"
-       ? `
-   - "searchDepth": "basic" or "advanced" (default "basic")
-   - "topic": "general" or "news" (default "general")
-   - "days": number (1-30, only used with topic:"news", default 3)
-   - "timeRange": "day"/"d", "week"/"w", "month"/"m", "year"/"y"
-   - "maxResults": number between 1-10 (default 5)
-   - "includeImages": boolean
-   - "includeImageDescriptions": boolean
-   - "includeAnswer": boolean | "basic" | "advanced"
-   - "includeRawContent": boolean
-   - "includeDomains": array of domains to include`
-       : `
-   - "maxResults": number between 1-10 (default 5)`
-   }
+Your response must be a valid JSON object with this schema:
+${JSON.stringify(searchParameters, null, 2)}
 
-${
-  state.searchProvider === "tavily"
-    ? `Always include "twitter.com" and "reddit.com" in "includeDomains" to ensure searches cover those platforms.`
-    : ""
-}`,
+Return only the JSON object, no other text.`,
             },
-            { role: "user", content: userMessage }, // Add the user's message to the messages array
+            { role: "user", content: userMessage },
           ],
+          reasoningEnabled: state.reasoningEnabled,
+          currentProcessingStep: state.currentProcessingStep,
+          response_format: searchParameters,
         }),
       });
 
       console.log("Query Refinement - Completed");
 
+      actions.setCurrentProcessingStep("Completed Refining Search Query");
+
       if (!response.ok) {
         throw new Error("Failed to get response");
       }
 
-      // Get the response as text first
-      const jsonString = await response.text();
-
-      // Clean and parse JSON response with enhanced error handling
       let refinedsearchdata;
+
       try {
-        // First, clean the string by removing any potential prefixes
-        const cleanedString = jsonString
-          .replace(/^\s*(Answer|Response|Here's the JSON|JSON)?\s*:?\s*/i, "")
-          .trim();
-
-        // First attempt: Try parsing the cleaned string directly
-        try {
-          refinedsearchdata = JSON.parse(cleanedString);
-          console.log("Query Refinement - Parsed Data:", refinedsearchdata);
-        } catch (parseError) {
-          // Second attempt: Try to extract JSON structure if direct parse fails
-          console.log(
-            "Query Refinement - Direct parse failed, trying JSON extraction"
-          );
-          const jsonMatch = cleanedString.match(/\{[\s\S]*\}/);
-          if (!jsonMatch) {
-            throw new Error("No valid JSON structure found in response");
-          }
-          refinedsearchdata = JSON.parse(jsonMatch[0]);
-          console.log(
-            "Query Refinement - Extracted JSON Data:",
-            refinedsearchdata
-          );
-        }
-
-        // Validate the parsed data has the required structure
-        if (!refinedsearchdata || typeof refinedsearchdata !== "object") {
-          throw new Error("Invalid JSON structure");
-        }
-
-        // Ensure we have the minimum required fields
-        refinedsearchdata = {
-          refinedQuery: refinedsearchdata.refinedQuery || userMessage,
-          searchOptions: refinedsearchdata.searchOptions || {},
-        };
+        refinedsearchdata = await response.json();
+        console.log("Parsed search parameters:", refinedsearchdata);
       } catch (error) {
-        // Log the error and the problematic response for debugging
-        console.error("Query Refinement - Parse Error:", error);
-        console.error("Query Refinement - Problematic Response:", jsonString);
-
-        // Fallback to a safe default structure
+        console.error("Parse Error:", error);
+        // Use fallback data
         refinedsearchdata = {
-          refinedQuery: userMessage,
-          searchOptions:
-            state.searchProvider === "tavily"
-              ? {
-                  searchDepth: "basic",
-                  topic: "general",
-                  maxResults: 5,
-                  includeAnswer: true,
-                  includeDomains: ["twitter.com", "reddit.com"],
-                }
-              : {
-                  maxResults: 5,
-                },
+          query: userMessage,
+          date_context: `The current date is ${
+            new Date().toISOString().split("T")[0]
+          } and the current time is ${
+            new Date().toISOString().split("T")[1].split(".")[0]
+          }`,
+          location: "in",
+          pro_mode: false,
+          response_language: "en",
+          answer_type: "text",
+          search_type: "general",
+          verbose_mode: false,
+          return_citations: true,
+          return_sources: true,
+          return_images: false,
+          recency_filter: "last 24 hours",
         };
-        console.log(
-          "Query Refinement - Using fallback data:",
-          refinedsearchdata
-        );
       }
 
-      // Extract the refined query and search options from the parsed data
-      context.refinedQuery = refinedsearchdata.refinedQuery || userMessage;
-      console.log("Query Refinement - Result", {
-        originalQuery: userMessage,
-        refinedQuery: context.refinedQuery,
-        searchOptions: refinedsearchdata.searchOptions,
-      });
-
       // Start search process
-      actions.setIsSearching(true);
+      actions.setCurrentProcessingStep("Searching");
       actions.setCurrentSearchResults([]);
+      console.log(
+        "setting current processing step to searching 1st time",
+        state.currentProcessingStep
+      );
 
       // Add placeholder message for search results
       actions.setMessages((prev) => [
         ...prev,
         {
+          index: Date.now(),
           role: "assistant",
-          content: "search-results",
+          content: "",
           searchResults: [],
         },
       ]);
 
-      // Handle Tavily search provider
-      if (state.searchProvider === "tavily") {
-        console.log("Tavily Search - Starting", {
-          query: context.refinedQuery,
-          options: refinedsearchdata.searchOptions,
+      // console.log("OpenPerplex Search - Starting", { query: searchContext.refinedQuery, options: refinedsearchdata.searchOptions, });
+      actions.setCurrentProcessingStep("Searching");
+
+      console.log(
+        "Processing Step to initiate search 2nd time",
+        state.currentProcessingStep
+      );
+
+      try {
+        const response = await fetch(`/api/OpenPerplex/search`, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            "X-API-Key": process.env.OPENPERPLEX_API_KEY || "",
+          },
+          body: JSON.stringify(refinedsearchdata),
         });
 
-        const searchData = await handlers.tavilySearch(
-          context.refinedQuery,
-          refinedsearchdata.searchOptions
-        );
-        context.results = searchData.results || [];
-        actions.setCurrentSearchResults(context.results);
-        console.log("Tavily Search - Completed", {
-          resultCount: context.results.length,
-        });
-
-        // Check if there are any search results to process
-        if (context.results.length > 0) {
-          console.log("Tavily Content Extraction - Starting");
-          // Extract URLs from the top 3 search results, sorted by score in descending order
-          const urls = context.results
-            .sort((a, b) => b.score - a.score) // Sort results by score, highest first
-            .slice(0, 3) // Take the top 3 results
-            .map((r) => r.url); // Map the results to an array of URLs
-          // Call the extract handler to fetch content from the extracted URLs
-          const extractData = await handlers.extract(urls);
-          // Check if extractData is valid and contains results
-          if (
-            extractData &&
-            extractData.results &&
-            extractData.results.length > 0
-          ) {
-            // Extract the raw content from each result, filter out any empty strings, and join them with double newlines
-            context.extractedContent = extractData.results
-              .map((r) => r.raw_content) // Map results to their raw content
-              .filter(Boolean) // Filter out any empty or falsy values
-              .join("\n\n"); // Join the content with double newlines
-          }
-          console.log(
-            "Tavily Content Extraction - Completed",
-            context.extractedContent
-          );
+        if (!response.ok) {
+          throw new Error(`Search failed: ${response.statusText}`);
         }
-      }
-      // Handle OpenPerplex search provider
-      else {
-        console.log("OpenPerplex Search - Starting", {
-          query: context.refinedQuery,
-          options: refinedsearchdata.searchOptions,
-        });
 
-        const searchData = await handlers.openPerplexSearch(
-          context.refinedQuery,
-          refinedsearchdata.searchOptions
+        const searchData = await response.json();
+
+        console.log("searchData", searchData);
+
+        // Use the OpenPerplex response format
+        searchContext.results = searchData.sources || [];
+        console.log("searchContext.results", searchContext.results);
+        console.log(
+          "searchContext.results as string",
+          JSON.stringify(searchContext.results)
         );
-        context.results = searchData.results || [];
-        actions.setCurrentSearchResults(context.results);
-        context.extractedContent = searchData.llm_response || "";
-        console.log("OpenPerplex Search - Completed", {
-          resultCount: context.results.length,
-        });
+        searchContext.extractedContent = searchData.llm_response || "";
+
+        if (searchData.error) {
+          throw new Error(searchData.error);
+        }
+        actions.setCurrentSearchResults(searchContext.results);
+        actions.setCurrentProcessingStep("Completed Searching");
+      } catch (error) {
+        console.error("Search failed:", error);
+        actions.setCurrentProcessingStep("Search failed");
       }
 
       // Update messages with search results
@@ -334,94 +330,49 @@ ${
         const newMessages = [...prev];
         const lastMessage = newMessages[newMessages.length - 1];
         if (lastMessage && lastMessage.role === "assistant") {
-          if (context.results.length > 0) {
-            lastMessage.context = context.results;
+          if (searchContext.results.length > 0) {
+            lastMessage.additionalInfo = {
+              externalLinks: searchContext.results,
+            };
           } else {
             lastMessage.content = "no-results";
-            lastMessage.context = [];
+            lastMessage.additionalInfo = { externalLinks: [] };
           }
         }
         return newMessages;
       });
 
-      actions.setIsSearching(false);
+      actions.setCurrentProcessingStep("Formatting Search Results");
 
-      // Format search results and extracted content for the AI model
-      contextualizedInput = `Here are the most relevant search results for your question about "${
-        context.refinedQuery
-      }":
-${
-  context.results && context.results.length > 0
-    ? context.results
-        .sort((a, b) => b.score - a.score)
-        .map(
-          (r, i) =>
-            `[${i + 1}] "${r.title}" (Relevance: ${Math.round(
-              r.score * 100
-            )}%) from ${getDomain(r.url)}
-${r.content}`
-        )
-        .join("\n\n")
-    : "No search results found."
-}
+      contextualizedInput = `Synthesize the following search results and extracted content to answer the user's question "${userMessage}". Keep as much of the original content as possible.
 
-${
-  context.extractedContent
-    ? state.searchProvider === "tavily"
-      ? `Additional extracted content:\n${context.extractedContent}\n\n`
-      : `LLM Response:\n${context.extractedContent}\n\n`
-    : ""
-}
+Search Results:
+${JSON.stringify(searchContext.results)}
 
-The user asked: "${userMessage}"`;
-
-      // Reset loading states since search is complete
-      actions.setIsSearching(false);
-    }
-
-    if (state.reasoningEnabled) {
-      actions.setMessages((prev) => [
-        ...prev,
-        { role: "assistant", content: "thinking..." },
-      ]);
-    } else {
-      actions.setMessages((prev) => [
-        ...prev,
-        { role: "assistant", content: "vomitting..." },
-      ]);
+Extracted Content:
+${searchContext.extractedContent} please cite the sources in the response.`;
     }
 
     if (state.searchEnabled) {
-      console.log("Final Response - Starting");
+      //console.log("Final Response - Starting");
+      actions.setCurrentProcessingStep("Final Response");
+      //console.log("final input", contextualizedInput);
     } else {
-      console.log("Model Response - Starting");
+      //console.log("Model Response - Starting");
+      actions.setCurrentProcessingStep("Model Response");
+      console.log("Current Processing Step:", state.currentProcessingStep);
     }
 
-    // Keep reasoning enabled if user has enabled it, regardless of search provider
-    const shouldEnableReasoning = state.reasoningEnabled;
-
-    console.log("Final Chat Request Config:", {
-      finalPrompt: contextualizedInput,
-      reasoningEnabled: shouldEnableReasoning,
-      ...(state.searchEnabled && { searchProvider: state.searchProvider }),
-      searchEnabled: state.searchEnabled,
-    });
-
-    // Send final context to chat API for response
-    const finalResponse = await fetch("/api/chat", {
+    const finalResponse = await fetch("/api/OpenAI/Chat", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
         messages: [
           systemMessage,
-          // Filter out system messages and ensure proper interleaving
           ...state.chatHistory
             .filter((msg) => msg.role !== "system")
             .reduce((acc: any[], msg, index, array) => {
-              // Add the message
               acc.push(msg);
-              // If this is a user message and the next message isn't an assistant message,
-              // add a dummy assistant response to maintain alternation
               if (
                 msg.role === "user" &&
                 index < array.length - 1 &&
@@ -431,10 +382,8 @@ The user asked: "${userMessage}"`;
               }
               return acc;
             }, []),
-          // Add the final contextualized input
           { role: "user", content: contextualizedInput },
         ],
-        reasoningEnabled: shouldEnableReasoning,
       }),
     });
 
@@ -451,6 +400,7 @@ The user asked: "${userMessage}"`;
       actions.setMessages((prev) => [
         ...prev,
         {
+          index: Date.now(),
           role: "assistant",
           content:
             "I apologize, but I encountered an error while processing your request. Please try again.",
@@ -472,12 +422,18 @@ The user asked: "${userMessage}"`;
       );
     }
 
-    // Handle streaming response from chat API
+    // Add initial assistant message
+    actions.setMessages((prev) => [
+      ...prev,
+      {
+        index: Date.now(),
+        role: "assistant",
+        content: "",
+      },
+    ]);
+
     const reader = finalResponse.body?.getReader();
-    if (!reader) {
-      console.error("No reader available for streaming response");
-      throw new Error("No reader available for streaming response");
-    }
+    if (!reader) throw new Error("No reader available");
 
     const decoder = new TextDecoder();
     let content = "";
@@ -485,27 +441,40 @@ The user asked: "${userMessage}"`;
     try {
       while (true) {
         const { done, value } = await reader.read();
-        if (done) break;
 
+        if (done) {
+          actions.setCurrentProcessingStep("");
+          break;
+        }
+
+        // Decode chunk and clean it
         const chunk = decoder.decode(value, { stream: true });
-        content += chunk;
 
-        actions.setMessages((prev) => {
-          const newMessages = [...prev];
-          const lastMessage = newMessages[newMessages.length - 1];
-          if (lastMessage && lastMessage.role === "assistant") {
-            lastMessage.content = content;
-          }
-          return newMessages;
-        });
+        //let count = 1;count++;console.log("chunk number", count);console.log("chunk", chunk);//logs to understand how things work behind the scenes
+
+        // Clean the chunk and append to content
+        const cleanChunk = chunk;
+        if (cleanChunk.trim()) {
+          content += cleanChunk;
+          //console.log("content", content);
+          // Update message with accumulated content
+          actions.setMessages((prev) => {
+            const newMessages = [...prev];
+            const lastMessage = newMessages[newMessages.length - 1];
+            if (lastMessage?.role === "assistant") {
+              lastMessage.content = content;
+            }
+            return newMessages;
+          });
+        }
       }
     } catch (streamError) {
-      console.error("Stream processing error:", streamError);
-      // Update the last message to show the error
+      console.error("Stream error:", streamError);
+      //update the last message to show the error
       actions.setMessages((prev) => {
         const newMessages = [...prev];
         const lastMessage = newMessages[newMessages.length - 1];
-        if (lastMessage && lastMessage.role === "assistant") {
+        if (lastMessage?.role === "assistant") {
           lastMessage.content =
             "Error: Failed to process the streaming response. Please try again.";
         }
@@ -523,18 +492,16 @@ The user asked: "${userMessage}"`;
       // Always add the initial user message
       newHistory.push({ role: "user", content: userMessage });
 
-      if (state.searchEnabled && context.results) {
+      if (state.searchEnabled && searchContext.results) {
         // Add search-related information as a single assistant message
         newHistory.push({
           role: "assistant",
           content: `Search Results Summary:
-- Refined query: "${context.refinedQuery}"
-- Found ${context.results.length} results
+- Refined query: "${searchContext.refinedQuery}"
+- Found ${searchContext.results.length} results
 ${
-  context.results.length > 0
-    ? `- Top result: "${context.results[0].title}" (Score: ${Math.round(
-        context.results[0].score * 100
-      )}%)`
+  searchContext.results.length > 0
+    ? `- Top result: "${searchContext.results[0].title}"`
     : "- No relevant results found"
 }`,
         });
@@ -555,16 +522,13 @@ ${
 
       return newHistory;
     });
-
-    console.log("Final Response - Completed");
   } catch (error) {
-    // Handle any errors during the process
     console.error("Chat Submit Handler - Error:", error);
-    // Reset loading states
-    actions.setIsSearching(false);
+    actions.setCurrentProcessingStep("");
     actions.setMessages((prev) => [
       ...prev,
       {
+        index: Date.now(),
         role: "assistant",
         content:
           "I apologize, but I encountered an error while processing your request. Please try again.",
