@@ -57,10 +57,10 @@ export const UserInput = memo(function UserInput({
                                         setUserPreferences(prev => ({ ...prev, model: ["gpt-4o-mini", "OpenAI"] }));
                                     } else if (value === "gpt-4o") {
                                         setUserPreferences(prev => ({ ...prev, model: ["gpt-4o", "OpenAI"] }));
-                                    } else if (value === "claude-3-5-haiku") {
-                                        setUserPreferences(prev => ({ ...prev, model: ["claude-3-5-haiku", "Anthropic"] }));
-                                    } else if (value === "claude-3-5-sonnet") {
-                                        setUserPreferences(prev => ({ ...prev, model: ["claude-3-5-sonnet", "Anthropic"] }));
+                                    } else if (value === "claude-3-5-haiku-20241022") {
+                                        setUserPreferences(prev => ({ ...prev, model: ["claude-3-5-haiku-20241022", "Anthropic"] }));
+                                    } else if (value === "claude-3-5-sonnet-20241022") {
+                                        setUserPreferences(prev => ({ ...prev, model: ["claude-3-5-sonnet-20241022", "Anthropic"] }));
                                     }
                                 }}
                                 className="appearance-none text-sm bg-transparent border border-[#4A4235]/5 rounded-lg px-3 py-1.5 
@@ -68,10 +68,10 @@ export const UserInput = memo(function UserInput({
                                          cursor-pointer transition-all duration-100 hover:border-[#4A4235]/30
                                          text-[#4A4235] font-medium min-w-[100px]"
                             >
-                                <option value="claude-3-5-haiku">Haiku 3.5</option>
+                                <option value="claude-3-5-haiku-20241022">Haiku 3.5</option>
                                 <option value="gpt-4o-mini">4o Mini</option>
                                 <option value="gpt-4o">4o</option>
-                                <option value="claude-3-5-sonnet">Sonnet 3.5</option>
+                                <option value="claude-3-5-sonnet-20241022">Sonnet 3.5</option>
                             </select>
                         </div>
                     </div>

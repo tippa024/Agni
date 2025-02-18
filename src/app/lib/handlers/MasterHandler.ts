@@ -112,7 +112,7 @@ export async function handleRawUserInput(
         actions.setCurrentProcessingStep("");
       } catch (error) {
         console.error(
-          "Error in Anthropic chat response in chatSubmitHandler.ts line:" +
+          "Error in Anthropic chat response in MasterHandler.ts line:" +
             new Error().stack?.split("\n")[1]?.match(/\d+/)?.[0] +
             ", error:" +
             error
@@ -131,7 +131,7 @@ export async function handleRawUserInput(
         actions.setCurrentProcessingStep("");
       } catch (error) {
         console.error(
-          "Error in OpenAI chat response in chatSubmitHandler.ts line:" +
+          "Error in OpenAI chat response in MasterHandler.ts line:" +
             new Error().stack?.split("\n")[1]?.match(/\d+/)?.[0] +
             ", error:" +
             error
@@ -148,7 +148,7 @@ export async function handleRawUserInput(
         role: "assistant",
         content:
           "I apologize, but I encountered an error while processing your request. Please try again." +
-          "location: chatSubmitHandler.ts - handleRawUserInput line:" +
+          "location: MasterHandler.ts - handleRawUserInput line:" +
           new Error().stack?.split("\n")[1]?.match(/\d+/)?.[0] +
           error,
         searchResults: [],
@@ -164,7 +164,7 @@ export async function handleRawUserInput(
         role: "assistant",
         content:
           "I apologize, but I encountered an error while processing your request. Please try again." +
-          "location: chatSubmitHandler.ts - handleRawUserInput line:" +
+          "location: MasterHandler.ts - handleRawUserInput line:" +
           new Error().stack?.split("\n")[1]?.match(/\d+/)?.[0] +
           error,
       },

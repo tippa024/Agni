@@ -13,9 +13,9 @@ export interface UserPreferences {
   searchEnabled: boolean;
   model:
     | ["gpt-4o-mini", "OpenAI"]
-    | ["claude-3-5-haiku", "Anthropic"]
+    | ["claude-3-5-haiku-20241022", "Anthropic"]
     | ["gpt-4o", "OpenAI"]
-    | ["claude-3-5-sonnet", "Anthropic"]
+    | ["claude-3-5-sonnet-20241022", "Anthropic"]
     | ["o3-mini", "OpenAI"]
     | ["deepseek-r1", "DeepSeek"]
     | ["deepseek-v3", "DeepSeek"];

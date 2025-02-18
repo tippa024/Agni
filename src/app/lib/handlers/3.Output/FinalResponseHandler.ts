@@ -33,7 +33,7 @@ export const AnthropicChatResponse = async (
       const lastMessage = newMessages[newMessages.length - 1];
       if (lastMessage?.role === "assistant") {
         lastMessage.content =
-          " I apologize, but I encountered an error while processing your request. Please try again. location: finalResponsehandler.ts - AnthropicChatResponse line:" +
+          " I apologize, but I encountered an error while processing your request. Please try again." +
           new Error().stack?.split("\n")[1]?.match(/\d+/)?.[0] +
           errorText;
       }
@@ -45,7 +45,7 @@ export const AnthropicChatResponse = async (
       {
         role: "assistant",
         content:
-          " I apologize, but I encountered an error while processing your request. Please try again. location: finalResponsehandler.ts - AnthropicChatResponse line:" +
+          " I apologize, but I encountered an error while processing your request. Please try again." +
           new Error().stack?.split("\n")[1]?.match(/\d+/)?.[0] +
           errorText,
       },
