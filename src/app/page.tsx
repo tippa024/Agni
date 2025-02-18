@@ -23,7 +23,7 @@ export default function Home() {
   // Group user preferences into a single object
   const [userPreferences, setUserPreferences] = useState<UserPreferences>({
     searchEnabled: false,
-    model: ["gpt-4o-mini", "OpenAI"] as ["gpt-4o-mini", "OpenAI"] | ["claude-3-5-haiku", "Anthropic"],
+    model: ["gpt-4o-mini", "OpenAI"] as ["gpt-4o-mini", "OpenAI"] | ["claude-3-5-haiku-20241022", "Anthropic"] | ["claude-3-5-sonnet-20241022", "Anthropic"],
   });
 
   const [conversationHistory, setConversationHistory] = useState<{ role: string; content: string }[]>([systemMessage]);
