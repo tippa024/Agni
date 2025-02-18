@@ -1,41 +1,28 @@
-import { Switch } from "./ui/Switch";
-import { Label } from "./ui/Label";
-import { Dispatch, SetStateAction, useState, memo } from "react";
+import { Switch } from "../../components/ui/Switch";
+import { Label } from "../../components/ui/Label";
+import { memo, useEffect, useRef } from "react";
+import { ChatInputProps } from "../utils/type";
 
-interface ChatInputProps {
-    input: string;
-    searchEnabled: boolean;
-    reasoningEnabled: boolean;
-    searchProvider: "tavily" | "openperplex";
-    font: { className: string };
-    handleSubmit: (e: React.FormEvent) => void;
-    setInput: Dispatch<SetStateAction<string>>;
-    setSearchEnabled: Dispatch<SetStateAction<boolean>>;
-    setReasoningEnabled: Dispatch<SetStateAction<boolean>>;
-    setSearchProvider: Dispatch<SetStateAction<"tavily" | "openperplex">>;
-}
 
 export const UserInput = memo(function UserInput({
     input,
-    searchEnabled,
-    reasoningEnabled,
+    userPreferences,
     font,
     handleSubmit,
     setInput,
-    setSearchEnabled,
-    setReasoningEnabled,
+    setUserPreferences,
 }: ChatInputProps) {
 
 
     const handleFormSubmit = (e: React.FormEvent) => {
-        e.preventDefault();
+        e.preventDefault(); //still not sure if this is needed, but it's here to be safe
         if (!input.trim()) return;
 
         // Add console logs
         console.log('Chat Input Config:', {
             userQuery: input.trim(),
-            searchEnabled,
-            reasoningEnabled
+            searchEnabled: userPreferences.searchEnabled,
+            model: userPreferences.model[0],
         });
         handleSubmit(e);
     };
@@ -51,25 +38,41 @@ export const UserInput = memo(function UserInput({
                     <div className="flex flex-col gap-2  w-[140px] border-r border-[#4A4235]/10 my-2">
                         <div className="flex items-start gap-2">
                             <Switch
-                                checked={searchEnabled}
-                                onCheckedChange={(checked: boolean | ((prevState: boolean) => boolean)) => setSearchEnabled(checked)}
+                                checked={userPreferences.searchEnabled}
+                                onCheckedChange={(checked: boolean | ((prevState: boolean) => boolean)) => setUserPreferences(prev => ({ ...prev, searchEnabled: checked as boolean }))}
                                 className="data-[state=checked]:bg-[#4A4235]"
                             />
                             <div className="flex items-center gap-2">
-                                <Label className={`text-sm transition-opacity duration-200 ${searchEnabled ? 'text-[#4A4235] font-medium opacity-100' : 'text-[#4A4235] opacity-50'}`}>
+                                <Label className={`text-sm transition-opacity duration-200 ${userPreferences.searchEnabled ? 'text-[#4A4235] font-medium opacity-100' : 'text-[#4A4235] opacity-50'}`}>
                                     Search
                                 </Label>
                             </div>
                         </div>
                         <div className="flex items-center gap-2">
-                            <Switch
-                                checked={reasoningEnabled}
-                                onCheckedChange={(checked: boolean | ((prevState: boolean) => boolean)) => setReasoningEnabled(checked)}
-                                className="data-[state=checked]:bg-[#4A4235]"
-                            />
-                            <Label className={`text-sm transition-opacity duration-200 ${reasoningEnabled ? 'text-[#4A4235] font-medium opacity-100' : 'text-[#4A4235] opacity-50'}`}>
-                                Reasoning
-                            </Label>
+                            <select
+                                value={userPreferences.model[0]}
+                                onChange={(e) => {
+                                    const value = e.target.value;
+                                    if (value === "gpt-4o-mini") {
+                                        setUserPreferences(prev => ({ ...prev, model: ["gpt-4o-mini", "OpenAI"] }));
+                                    } else if (value === "gpt-4o") {
+                                        setUserPreferences(prev => ({ ...prev, model: ["gpt-4o", "OpenAI"] }));
+                                    } else if (value === "claude-3-5-haiku") {
+                                        setUserPreferences(prev => ({ ...prev, model: ["claude-3-5-haiku", "Anthropic"] }));
+                                    } else if (value === "claude-3-5-sonnet") {
+                                        setUserPreferences(prev => ({ ...prev, model: ["claude-3-5-sonnet", "Anthropic"] }));
+                                    }
+                                }}
+                                className="appearance-none text-sm bg-transparent border border-[#4A4235]/5 rounded-lg px-3 py-1.5 
+                                         focus:outline-none focus:border-[#4A4235]/40 focus:ring-1 focus:ring-[#4A4235]/20
+                                         cursor-pointer transition-all duration-100 hover:border-[#4A4235]/30
+                                         text-[#4A4235] font-medium min-w-[100px]"
+                            >
+                                <option value="claude-3-5-haiku">Haiku 3.5</option>
+                                <option value="gpt-4o-mini">4o Mini</option>
+                                <option value="gpt-4o">4o</option>
+                                <option value="claude-3-5-sonnet">Sonnet 3.5</option>
+                            </select>
                         </div>
                     </div>
                 </div>

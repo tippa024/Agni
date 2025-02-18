@@ -1,101 +1,50 @@
 import { useState, useEffect, memo, useRef } from 'react';
 import { Source_Serif_4 } from 'next/font/google';
-import { formatOutput } from '../lib/utils/outputFormatter';
+import MarkdownRenderer from '../lib/utils/render';
+import { MessageBubbleProps, SearchResult } from '../lib/utils/type';
 
 const sourceSerif4 = Source_Serif_4({
     subsets: ['latin'],
     weight: ['400', '600', '700'],
 });
 
-
-
-interface SearchResult {
-    title: string;
-    link: string;
-    snippet: string;
-}
-
-interface MessageBubbleProps {
-    role: 'user' | 'assistant' | 'system';
-    content: string;
-    messageIndex: number;
-    additionalInfo?: {
-        WebsiteLinks?: SearchResult[];
-        Context?: string;
-    };
-    currentProcessingStep?: string;
-    userPreferences?: {
-        searchEnabled: boolean;
-        reasoningEnabled: boolean;
-        model: string;
-    };
-}
-
 console.log("MessageBubble re-rendered");
 
-let count = 0;
-
-
-
-// Memoize MessageBubble since it only needs to re-render when its props change
 export const MessageBubble = memo(function MessageBubble({
-    role,
-    content,
-    messageIndex,
-    additionalInfo,
+    message,
+    messageComponentIndex,
     currentProcessingStep,
-    userPreferences = {
-        searchEnabled: false,
-        reasoningEnabled: false,
-        model: 'gpt-4o-mini',
-    }
 }: MessageBubbleProps) {
 
-    count++;
-
-    //console.log("content", content);
-    //console.log("the number of times this funtion was used", count);
-    //console.log("currentProcessingStep", currentProcessingStep);
-
-
     const [showAllSources, setShowAllSources] = useState(false);
-    const [isReasoningCollapsed, setIsReasoningCollapsed] = useState(true);
-    const [messageContent, setMessageContent] = useState<{ reasoning?: string; answer?: string }>({});
+    const [isThinkingCollapsed, setIsThinkingCollapsed] = useState(true);
+    const [segmentedMessageContent, setSegmentedMessageContent] = useState<{ thinking?: string; answer?: string }>({});
     const [wordCount, setWordCount] = useState(0);
     const [isCopied, setIsCopied] = useState(false);
-    const isAssistant = role === 'assistant';
-
-    // Use ref to persist count between renders
-    const effectRunCount = useRef(0);
+    const isAssistant = message.role === 'assistant';
 
     // Parse content sections
     useEffect(() => {
-        if (isAssistant && content) {
-
-            effectRunCount.current += 1;  // Increment the ref value
-
-            console.log(`content on run #${effectRunCount.current} for message ${messageIndex}:`, content);
-
-            // Clean the content by removing JSON-like formatting
-            const cleanContent = content.replace(/(?:\d+:"([^"]+)"\s*(?:↵)?)+/g, '$1 ');
+        if (isAssistant && message.content) {
 
             // Split into reasoning and answer if needed
-            const parts = content.split(/\n*Reasoning:\s*|\n*Answer:\s*/);
+            const parts = message.content.split(/\n*Reasoning:\s*|\n*Answer:\s*/);
 
-            setMessageContent({
-                reasoning: parts.length > 1 ? formatOutput(parts[1]) : '',
-                answer: formatOutput(parts[parts.length - 1])
+            setSegmentedMessageContent({
+                thinking: parts.length > 1 ? parts[1] : '',
+                answer: parts[parts.length - 1]
             });
-            console.log("messageContent from messagebubble", messageContent);
 
             // Calculate word count
-            setWordCount(content.split(/\s+/).length);
+            setWordCount(message.content.split(/\s+/).length);
         }
-    }, [content, isAssistant, messageIndex]);
+    }, [message.content, isAssistant]);
+
+
 
     const handleCopy = async () => {
         try {
-            await navigator.clipboard.writeText(content);
+            await navigator.clipboard.writeText(message.content);
             setIsCopied(true);
             setTimeout(() => setIsCopied(false), 2000);
         } catch (error) {
@@ -107,46 +56,26 @@ export const MessageBubble = memo(function MessageBubble({
     if (!isAssistant) {
 
         return (
-            <div className="flex justify-end mb-4">
-                <div className="max-w-2xl px-4 py-2">
-                    <div className={`${sourceSerif4.className} text-[#4A4235] text-base`}>{content}</div>
+            <div className="flex justify-end p-2 border-red-500">
+                <div className="max-w-2xl break-words font-stretch-expanded  border-blue-500 px-4 py-2">
+                    <div className={`${sourceSerif4.className} text-[#4A4235] text-base`}>{message.content}</div>
                 </div>
             </div>
         );
     }
-    // Loading state - only show for the last assistant message
-    {
-        (userPreferences?.searchEnabled && currentProcessingStep === 'searching') && (
-            <div className="flex items-center gap-2">
-                <span className={`text-xs text-[#b3b2b0] ${sourceSerif4.className}`}>
-                    "vethukutuna" {currentProcessingStep}
-                </span>
-                <span className="flex gap-1">
-                    {[0, 0.3, 0.6].map((delay) => (
-                        <span
-                            key={delay}
-                            className="h-1 w-1 rounded-full bg-[#b5b4b2] animate-pulse"
-                            style={{ animationDelay: `${delay}s` }}
-                        />
-                    ))}
-                </span>
-            </div>
-        )
-    }
 
     // Search results message
-    if (additionalInfo?.WebsiteLinks && additionalInfo.WebsiteLinks.length > 0) {
-        const externalLinks = additionalInfo.WebsiteLinks;
+    if (message.sources && message.sources.length > 0) {
         return (
             <div className="flex justify-start mb-8">
                 <div className="w-full max-w-3xl bg-[#F5F5F5] border border-[#2C2C2C] px-4 py-3">
                     <div className="flex items-center justify-between mb-3 border-b border-[#2C2C2C] pb-2">
                         <span className="text-sm font-mono text-[#2C2C2C] uppercase">
-                            Sources [{externalLinks.length}]
+                            Sources [{message.sources.length}]
                         </span>
                     </div>
                     <div className="space-y-4 max-h-[400px] overflow-y-auto">
-                        {(showAllSources ? externalLinks : externalLinks.slice(0, 3)).map((result: SearchResult, index: number) => (
+                        {(showAllSources ? message.sources : message.sources.slice(0, 3)).map((result: SearchResult, index: number) => (
                             <div key={index} className="border-b border-[#2C2C2C]/20 pb-3 last:border-0">
                                 <div className="flex items-baseline gap-2 mb-1">
                                     <span className="font-mono text-sm text-[#2C2C2C]">{index + 1}.</span>
@@ -166,12 +95,12 @@ export const MessageBubble = memo(function MessageBubble({
                         ))}
                     </div>
 
-                    {externalLinks.length > 3 && (
+                    {message.sources.length > 3 && (
                         <button
                             onClick={() => setShowAllSources(!showAllSources)}
                             className="mt-3 text-xs font-mono text-[#2C2C2C]/70 hover:text-[#2C2C2C]"
                         >
-                            {showAllSources ? '[ - SHOW LESS - ]' : `[ + SHOW ${externalLinks.length - 3} MORE ]`}
+                            {showAllSources ? '[ - SHOW LESS - ]' : `[ + SHOW ${message.sources.length - 3} MORE ]`}
                         </button>
                     )}
                 </div>
@@ -180,7 +109,7 @@ export const MessageBubble = memo(function MessageBubble({
     }
 
     // No results message
-    if (content === 'no-results') {
+    if (message.sources && message.sources.length === 0) {
         return (
             <div className="flex justify-start mb-8">
                 <div className="w-full max-w-3xl bg-[#F5F5F5] border border-[#2C2C2C] px-4 py-3">
@@ -198,39 +127,41 @@ export const MessageBubble = memo(function MessageBubble({
     // Regular assistant message
 
     return (
-        <div className="flex justify-start mb-12">
-            <div className="w-[90%] rounded-sm bg-white px-8 py-6 shawdow-sm border border-white">
-                <div className="flex items-center justify-between mb-4">
-                    <div className="text-sm font-mono uppercase tracking-wide text-[#2C2C2C]">AGNI</div>
-                    {currentProcessingStep && currentProcessingStep !== '' && (
-                        <div className="flex items-center gap-2">
-                            <span className={`text-xs text-[#b3b2b0] ${sourceSerif4.className}`}>
-                                "helloeeew" {currentProcessingStep}
-                            </span>
-                            <span className="flex gap-1">
-                                {[0, 0.3, 0.6].map((delay) => (
-                                    <span
-                                        key={delay}
-                                        className="h-1 w-1 rounded-full bg-[#b5b4b2] animate-pulse"
-                                        style={{ animationDelay: `${delay}s` }}
-                                    />
-                                ))}
-                            </span>
-                        </div>
-                    )}
+        <div className="flex justify-start">
+            <div className=" w-[100%] rounded-sm pr-8 pl-2 py-4  border-white border-4">
+                <div className="flex items-center justify-normal mb-4">
+                    <div className="text-sm font-mono mr-2 font-semibold uppercase tracking-wide text-[#2C2C2C]">AGNI {messageComponentIndex}</div>
+                    {
+                        currentProcessingStep && currentProcessingStep !== '' &&
+                        (
+                            <div className="flex items-center gap-2">
+                                <span className={`text-xs text-[#c5bca7] ${sourceSerif4.className}`}>
+                                    {currentProcessingStep}
+                                </span>
+                                <span className="flex gap-1">
+                                    {[0, 0.3, 0.6].map((delay) => (
+                                        <span
+                                            key={delay}
+                                            className="h-1 w-1 rounded-full bg-[#b5b4b2] animate-pulse"
+                                            style={{ animationDelay: `${delay}s` }}
+                                        />
+                                    ))}
+                                </span>
+                            </div>
+                        )}
                 </div>
 
                 {/* Thinking/Reasoning Section - Only show if reasoning content exists */}
-                {messageContent.reasoning && (
+                {segmentedMessageContent.thinking && (
                     <div className="mb-6">
                         <div
                             className="cursor-pointer select-none"
-                            onClick={() => setIsReasoningCollapsed(!isReasoningCollapsed)}
+                            onClick={() => setIsThinkingCollapsed(!isThinkingCollapsed)}
                         >
                             <div className="flex items-center gap-2 text-[#2C2C2C] text-sm mb-2">
                                 <span
                                     className="inline-flex items-center justify-center w-4 transition-transform duration-200"
-                                    style={{ transform: isReasoningCollapsed ? 'rotate(-90deg)' : 'rotate(0deg)' }}
+                                    style={{ transform: isThinkingCollapsed ? 'rotate(-90deg)' : 'rotate(0deg)' }}
                                 >
                                     ▼
                                 </span>
@@ -240,11 +171,11 @@ export const MessageBubble = memo(function MessageBubble({
                                 </span>
                             </div>
                         </div>
-                        {!isReasoningCollapsed && (
+                        {!isThinkingCollapsed && (
                             <div className="mt-4 text-[#2C2C2C]/90 text-sm pl-4 border-l-2 border-[#2C2C2C]/20 overflow-y-auto">
                                 <div
                                     className="prose prose-sm max-w-none"
-                                    dangerouslySetInnerHTML={{ __html: messageContent.reasoning }}
+                                    dangerouslySetInnerHTML={{ __html: segmentedMessageContent.thinking }}
                                 />
                             </div>
                         )}
@@ -252,15 +183,18 @@ export const MessageBubble = memo(function MessageBubble({
                 )}
 
                 {/* Answer Section */}
-                {messageContent.answer && (
-                    <div className="space-y-4">
-                        {messageContent.reasoning && <div className="h-px bg-[#2C2C2C]/10" />}
-                        <div
-                            className="prose prose-sm max-w-none"
-                            dangerouslySetInnerHTML={{ __html: messageContent.answer }}
-                        />
-                    </div>
-                )}
+                {segmentedMessageContent.answer &&
+                    (
+                        <div className="space-y-4">
+                            {
+                                segmentedMessageContent.thinking &&
+                                <div className="h-px bg-[#2C2C2C]/10" />}
+                            <div className="prose prose-sm max-w-none">
+                                <MarkdownRenderer content={segmentedMessageContent.answer} />
+                            </div>
+                        </div>
+                    )
+                }
 
                 {/* Copy Button */}
                 <button
@@ -295,4 +229,4 @@ export const MessageBubble = memo(function MessageBubble({
             </div>
         </div>
     );
-}); 
+});
