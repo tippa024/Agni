@@ -199,7 +199,7 @@ export const MessageBubble = memo(function MessageBubble({
                 {/* Copy Button */}
                 <button
                     onClick={handleCopy}
-                    className="absolute top-3 right-3 opacity-0 group-hover:opacity-100 transition-all duration-200 flex items-center gap-1.5 text-xs text-[#2C2C2C]/60 hover:text-[#2C2C2C]"
+                    className=" opacity-0 hover:opacity-100 transition-all duration-200 flex items-center gap-1.5 text-xs text-[#2C2C2C]/60 hover:text-[#2C2C2C]"
                 >
                     <svg
                         xmlns="http://www.w3.org/2000/svg"
@@ -222,7 +222,7 @@ export const MessageBubble = memo(function MessageBubble({
                             />
                         )}
                     </svg>
-                    <span className="opacity-0 group-hover:opacity-100 transition-opacity">
+                    <span className="opacity-0 hover:opacity-100 transition-opacity">
                         {isCopied ? 'Copied!' : 'Copy'}
                     </span>
                 </button>
