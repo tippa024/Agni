@@ -15,6 +15,10 @@ const openai = new OpenAI({
 });
 
 export async function POST(req: NextRequest) {
+  if (!process.env.OPENAI_API_KEY) {
+    return new Response("OpenAI API key is not set", { status: 500 });
+  }
+
   try {
     const { messages } = await req.json();
     console.log("===ChatOpenAIAPIStarting===", messages);

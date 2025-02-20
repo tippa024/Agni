@@ -12,6 +12,10 @@ const anthropic = new Anthropic({
 console.log("ANTHROPIC STARTING");
 
 export async function POST(req: NextRequest) {
+  if (!process.env.ANTHROPIC_API_KEY) {
+    return new Response("Anthropic API key is not set", { status: 500 });
+  }
+
   try {
     const { messages, model, systemMessage } = await req.json();
     console.log(" Anthropic API Starting with messages", messages);
