@@ -1,6 +1,6 @@
 import { Switch } from "../../components/ui/Switch";
 import { Label } from "../../components/ui/Label";
-import { memo, useEffect, useRef } from "react";
+import { memo } from "react";
 import { ChatInputProps } from "../utils/type";
 
 

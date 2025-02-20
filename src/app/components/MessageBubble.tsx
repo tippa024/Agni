@@ -1,4 +1,4 @@
-import { useState, useEffect, memo, useRef } from 'react';
+import { useState, useEffect, memo } from 'react';
 import { Source_Serif_4 } from 'next/font/google';
 import MarkdownRenderer from '../lib/utils/render';
 import { MessageBubbleProps, SearchResult } from '../lib/utils/type';
