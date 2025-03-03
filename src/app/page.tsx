@@ -63,9 +63,6 @@ export default function Home() {
         // Initial centered layout with larger vertical spacing
         <div className="flex flex-col items-center justify-center min-h-screen p-4">
           <div className="w-full max-w-3xl -mt-32"> {/* Negative margin to adjust visual center */}
-            <h1 className={`text-4xl font-semibold text-[#4A4235] text-center mb-12 ${sourceSerif4.className}`}>
-              Ask me anything
-            </h1>
             <div className="transform transition-all duration-300 ease-in-out hover:scale-[1.01]">
               <UserInput
                 input={input}
