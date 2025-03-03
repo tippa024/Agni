@@ -62,7 +62,7 @@ export default function Home() {
       {messages.length === 0 ? (
         // Initial centered layout with larger vertical spacing
         <div className="flex flex-col items-center justify-center min-h-screen p-4">
-          <div className="w-full max-w-3xl -mt-32"> {/* Negative margin to adjust visual center */}
+        <div className="w-full max-w-3xl -mt-32"> {/* Negative margin to adjust visual center */}
             <div className="transform transition-all duration-300 ease-in-out hover:scale-[1.01]">
               <UserInput
                 input={input}
