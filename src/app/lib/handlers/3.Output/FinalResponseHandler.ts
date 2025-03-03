@@ -7,6 +7,7 @@ export const AnthropicChatResponse = async (
   actions: ChatActions,
   model: string
 ) => {
+  console.log("calling Anthropic API");
   const finalResponse = await fetch("/api/Anthropic", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
@@ -51,6 +52,10 @@ export const AnthropicChatResponse = async (
       },
     ]);
 
+    console.log(
+      "Anthropic Chat API Error and Messages and History updated accordingly"
+    );
+
     throw new Error(
       `Failed to get response (${finalResponse.status}): ${errorText}`
     );
@@ -78,10 +83,14 @@ export const AnthropicChatResponse = async (
         });
       }
     }
+
+    console.log("Anthropic API Response completed");
+
     actions.setConversationHistory((prev) => [
       ...prev,
       { role: "assistant", content: content },
     ]);
+    console.log("History updated");
   } catch (streamError) {
     console.error(
       "Stream error at AnthropicChatResponse in finalResponsehandler",
@@ -92,7 +101,7 @@ export const AnthropicChatResponse = async (
       const lastMessage = newMessages[newMessages.length - 1];
       if (lastMessage?.role === "assistant") {
         lastMessage.content =
-          " I apologize, but I encountered an error while processing your request. Please try again. location: finalResponsehandler.ts - AnthropicChatResponse line:" +
+          " I apologize, but I encountered an error while parsing the Anthropic API response. Please try again. location: finalResponsehandler.ts - AnthropicChatResponse line:" +
           new Error().stack?.split("\n")[1]?.match(/\d+/)?.[0] +
           streamError;
       }
@@ -104,11 +113,14 @@ export const AnthropicChatResponse = async (
       {
         role: "assistant",
         content:
-          " I apologize, but I encountered an error while processing your request. Please try again. location: finalResponsehandler.ts - AnthropicChatResponse line:" +
+          " I apologize, but I encountered an error while parsing the Anthropic API response. Please try again. location: finalResponsehandler.ts - AnthropicChatResponse line:" +
           new Error().stack?.split("\n")[1]?.match(/\d+/)?.[0] +
           streamError,
       },
     ]);
+    console.log(
+      "Error with parsing Anthropic API response, History updated accordingly"
+    );
     throw streamError;
   } finally {
     reader.releaseLock();
@@ -121,6 +133,7 @@ export const OpenAIChatResponse = async (
   actions: ChatActions,
   model: string
 ) => {
+  console.log("calling OpenAI API");
   const finalResponse = await fetch("/api/OpenAI/Chat", {
     method: "POST",
     headers: { "Content-Type": "application/json" },

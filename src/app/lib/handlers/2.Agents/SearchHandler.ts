@@ -1,18 +1,22 @@
 import {
-  QueryRefinementPrompt,
+  SearchQueryPrompt,
   contextualisedInputPromptAfterSearch,
 } from "../../utils/promt";
-import { SearchResult, SearchParameters, ChatActions } from "../../utils/type";
+import {
+  SearchResult,
+  SearchParameters,
+  ChatActions,
+  SearchOutput,
+} from "../../utils/type";
 
 const FALLBACK_SEARCH_PARAMS = {
   query: "",
   date_context: "",
   location: "in",
-  pro_mode: false,
+  model: "gpt-4o-mini",
   response_language: "en",
   answer_type: "text",
   search_type: "general",
-  verbose_mode: false,
   return_citations: true,
   return_sources: true,
   return_images: false,
@@ -25,8 +29,9 @@ let searchIO = {
   OpenPerplexSearchOutput: {
     sources: [] as SearchResult[],
     llm_response: "",
+    responsetime: 0,
     error: "",
-  },
+  } as SearchOutput,
 };
 
 export async function search(
@@ -37,11 +42,13 @@ export async function search(
 ) {
   searchIO.initialQuery = userMessage;
   if (queryRefinement) {
+    actions.setCurrentProcessingStep("Understanding");
+
     const refimentmessages = [
       {
         role: "system",
         content: ` ${
-          QueryRefinementPrompt.content
+          SearchQueryPrompt.content
         } Consider the chat history for context: ${JSON.stringify(
           chatHistory
         )} `,
@@ -50,9 +57,10 @@ export async function search(
     ];
 
     actions.setConversationHistory((prev) => [...prev, ...refimentmessages]);
-    actions.setCurrentProcessingStep("Refining Search Query");
 
     try {
+      console.log("Search Query Refinement using OpenAI API - Starting");
+
       const response = await fetch("/api/OpenAI/SearchQueryRefinement", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -61,18 +69,19 @@ export async function search(
         }),
       });
 
-      console.log("Query Refinement - Completed");
-
-      actions.setCurrentProcessingStep("Completed Refining Search Query");
-
       if (!response.ok) {
+        console.error(
+          "Query Refinement using OpenAI API - Failed",
+          response.statusText
+        );
         throw new Error(
           `Failed to get response from Search Query Refinement: ${response.statusText}`
         );
       }
-
       searchIO.searchParameters = await response.json();
       console.log("Refined SearchParameters:", searchIO.searchParameters);
+      actions.setCurrentProcessingStep("Intializing Search");
+      console.log("Search Query Refinement using OpenAI API - Completed");
     } catch (error) {
       console.error(
         "Search Query Refinement Error in Search.ts line:" +
@@ -80,16 +89,14 @@ export async function search(
           ", error:" +
           error
       );
+      actions.setCurrentProcessingStep("Intializing Search");
+      console.log("Search Query Refinement using OpenAI API - Failed");
 
       // Return fallback data with the current user message and timestamp
       const fallbackData = {
         ...FALLBACK_SEARCH_PARAMS,
         query: userMessage,
-        date_context: `The current date is ${
-          new Date().toISOString().split("T")[0]
-        } and the current time is ${
-          new Date().toISOString().split("T")[1].split(".")[0]
-        }`,
+        date_context: `${new Date()}`,
       };
       console.log("Using fallback data:", fallbackData);
 
@@ -100,6 +107,8 @@ export async function search(
   actions.setCurrentProcessingStep("Searching");
 
   try {
+    console.log("OpenPerplex Search API - Starting");
+
     const response = await fetch(`/api/OpenPerplex/search`, {
       method: "POST",
       headers: {
@@ -110,40 +119,39 @@ export async function search(
     });
 
     if (!response.ok) {
+      console.log("Search failed using OpenPerplex API", response.statusText);
       throw new Error(`Search failed: ${response.statusText}`);
     }
 
     const searchData = await response.json();
 
-    console.log("searchData", searchData);
-
     if (searchData.error) {
+      console.error("OpenPerplex Search API - Failed", searchData.error);
       throw new Error(searchData.error);
     }
-    actions.setCurrentProcessingStep("Completed Searching");
+
+    actions.setCurrentProcessingStep("Search Completed");
+    console.log("OpenPerplex Search API - Completed");
+    console.log("searchData", searchData);
 
     searchIO.OpenPerplexSearchOutput.sources = searchData.sources || [];
     searchIO.OpenPerplexSearchOutput.llm_response =
       searchData.llm_response || "";
 
-    actions.setCurrentProcessingStep("Search Completed");
-
-    // Update messages with search results
     actions.setMessages((prev) => {
       const newMessages = [...prev];
       const lastMessage = newMessages[newMessages.length - 1];
       if (lastMessage && lastMessage.role === "assistant") {
+        lastMessage.content = searchIO.OpenPerplexSearchOutput.llm_response;
         if (searchIO.OpenPerplexSearchOutput.sources.length > 0) {
           lastMessage.sources = searchIO.OpenPerplexSearchOutput.sources;
         } else {
-          lastMessage.content = "no-results";
           lastMessage.sources = [];
         }
       }
       return newMessages;
     });
 
-    //add a placeholder message for the assistant response
     actions.setMessages((prev) => [
       ...prev,
       {

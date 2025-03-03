@@ -33,7 +33,6 @@ export async function POST(req: NextRequest) {
       stream: true,
     });
 
-    // Create a TransformStream to handle the streaming
     const encoder = new TextEncoder();
     const stream = new ReadableStream({
       async start(controller) {

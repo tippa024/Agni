@@ -1,4 +1,5 @@
 import { search } from "./2.Agents/SearchHandler";
+import { main } from "./2.Agents/TwitterHandler";
 import {
   OpenAIChatResponse,
   AnthropicChatResponse,
@@ -39,32 +40,35 @@ export async function handleRawUserInput(
   ]);
 
   try {
-    console.log("Chat Submit Handler - Starting", {
+    console.log("Initialising Master Handler", {
       userMessage,
       searchEnabled: state.userPreferences.searchEnabled,
       model: state.userPreferences.model,
     });
-    let contextualizedInput = userMessage;
-    let searchContext = {
-      results: [] as SearchResult[],
-      extractedContent: "",
-      initialQuery: userMessage,
-      refinedQuery: "",
-    };
 
-    //future scoping: intial query understanding: understand the user's intent and figure out which models to use, which sources are needed, and what are the apis needed to be used along with the optimimal parameters for the apis
+    let contextualizedInput = userMessage;
 
     // If search is enabled, perform search operations
     if (state.userPreferences.searchEnabled) {
       const queryrefinementneeded = true;
-      const searchdatainfusedquery = await search(
-        searchContext.initialQuery,
-        state.conversationHistory,
-        actions,
-        queryrefinementneeded
-      );
-      if (searchdatainfusedquery) {
-        contextualizedInput = searchdatainfusedquery;
+
+      try {
+        const searchdatainfusedquery = await search(
+          userMessage,
+          state.conversationHistory,
+          actions,
+          queryrefinementneeded
+        );
+        if (searchdatainfusedquery) {
+          contextualizedInput = searchdatainfusedquery;
+        }
+      } catch (error) {
+        console.error(
+          "Error in SearchHandler.ts line:" +
+            new Error().stack?.split("\n")[1]?.match(/\d+/)?.[0] +
+            ", error:" +
+            error
+        );
       }
     }
 
@@ -98,7 +102,7 @@ export async function handleRawUserInput(
     ];
 
     console.log(
-      "Chat Submit Handler - Starting with model:",
+      "Master Handler concluding with model:",
       state.userPreferences.model[0]
     );
 
@@ -110,6 +114,9 @@ export async function handleRawUserInput(
           state.userPreferences.model[0]
         );
         actions.setCurrentProcessingStep("");
+        console.log(
+          "Anthropic Chat API Response completed - Master Handler is retiring"
+        );
       } catch (error) {
         console.error(
           "Error in Anthropic chat response in MasterHandler.ts line:" +
@@ -129,6 +136,9 @@ export async function handleRawUserInput(
           state.userPreferences.model[0]
         );
         actions.setCurrentProcessingStep("");
+        console.log(
+          "OpenAI Chat API Response completed - Master Handler is retiring"
+        );
       } catch (error) {
         console.error(
           "Error in OpenAI chat response in MasterHandler.ts line:" +
@@ -148,7 +158,7 @@ export async function handleRawUserInput(
         role: "assistant",
         content:
           "I apologize, but I encountered an error while processing your request. Please try again." +
-          "location: MasterHandler.ts - handleRawUserInput line:" +
+          "location: MasterHandler.ts line:" +
           new Error().stack?.split("\n")[1]?.match(/\d+/)?.[0] +
           error,
         searchResults: [],
@@ -164,7 +174,7 @@ export async function handleRawUserInput(
         role: "assistant",
         content:
           "I apologize, but I encountered an error while processing your request. Please try again." +
-          "location: MasterHandler.ts - handleRawUserInput line:" +
+          "location: MasterHandler.ts line:" +
           new Error().stack?.split("\n")[1]?.match(/\d+/)?.[0] +
           error,
       },

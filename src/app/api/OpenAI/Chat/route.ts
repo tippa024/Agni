@@ -20,7 +20,7 @@ export async function POST(req: NextRequest) {
   }
 
   try {
-    const { messages } = await req.json();
+    const { messages, model } = await req.json();
     console.log("===ChatOpenAIAPIStarting===", messages);
 
     if (!messages || !Array.isArray(messages)) {
@@ -28,7 +28,7 @@ export async function POST(req: NextRequest) {
     }
 
     const response = await openai.chat.completions.create({
-      model: "gpt-4o-mini",
+      model: model,
       messages,
       stream: true,
       response_format: { type: "text" },

@@ -1,4 +1,5 @@
 import { NextRequest } from "next/server";
+import { SearchParameters } from "@/app/lib/utils/type";
 
 // Validate API key at startup
 const apiKey = process.env.OPENPERPLEX_API_KEY;
@@ -14,17 +15,19 @@ export async function POST(request: NextRequest) {
     //console.log("Received search data:", refinedsearchdata);
 
     // Process parameters
-    const params = {
+    const params: SearchParameters = {
       query: refinedsearchdata.query,
-      return_citations: String(refinedsearchdata.return_citations),
-      return_sources: String(refinedsearchdata.return_sources),
-      verbose_mode: String(refinedsearchdata.verbose_mode),
+      return_citations: Boolean(refinedsearchdata.return_citations),
+      return_sources: Boolean(refinedsearchdata.return_sources),
+      verbose_mode: Boolean(refinedsearchdata.verbose_mode),
       search_type: refinedsearchdata.search_type,
       answer_type: refinedsearchdata.answer_type,
       response_language: refinedsearchdata.response_language,
-      pro_mode: String(refinedsearchdata.pro_mode),
+      model: refinedsearchdata.model,
       location: refinedsearchdata.location,
       date_context: refinedsearchdata.date_context,
+      return_images: Boolean(refinedsearchdata.return_images),
+      recency_filter: refinedsearchdata.recency_filter,
     };
 
     const queryString = Object.entries(params)
