@@ -19,7 +19,7 @@ export async function POST(req: NextRequest) {
   try {
     const { messages } = await req.json();
 
-    console.log("===SearchRefinimentThroughOPENAIAPISTARTING===", messages);
+    console.log("===SearchRefinimentThroughOPENAIAPISTARTING===");
 
     if (!messages || !Array.isArray(messages)) {
       return new Response("Messages are required", { status: 400 });

@@ -21,7 +21,7 @@ export async function POST(req: NextRequest) {
 
   try {
     const { messages, model } = await req.json();
-    console.log("===ChatOpenAIAPIStarting===", messages);
+    console.log("===ChatOpenAIAPIStarting===");
 
     if (!messages || !Array.isArray(messages)) {
       return new Response("Messages are required", { status: 400 });
@@ -43,6 +43,7 @@ export async function POST(req: NextRequest) {
         for await (const chunk of response) {
           const text = chunk.choices[0]?.delta?.content || "";
           controller.enqueue(encoder.encode(text));
+          console.log("OpenAI API Chunk:", text);
         }
         controller.close();
       },

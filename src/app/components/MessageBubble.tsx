@@ -34,8 +34,6 @@ export const MessageBubble = memo(function MessageBubble({
                 thinking: parts.length > 1 ? parts[1] : '',
                 answer: parts[parts.length - 1]
             });
-
-            // Calculate word count
             setWordCount(message.content.split(/\s+/).length);
         }
     }, [message.content, isAssistant]);
@@ -51,6 +49,8 @@ export const MessageBubble = memo(function MessageBubble({
             console.error('Failed to copy message:', error);
         }
     };
+
+    const markdownCopy = `"Manufacturing Consent: The Political Economy of the Mass Media," authored by Edward S. Herman and Noam Chomsky, is a seminal work that critiques the media's role in shaping public perception and serves the interests of powerful groups. Here are some interesting facts about it: 1. **Propaganda Model**: The book introduces the "propaganda model" of the media, arguing that mass communication is a well-organized and structured system which serves the elite rather than the general public. This model emphasizes factors like media ownership, advertising, sourcing, and flak. 2. **Focus on Elite Interests**: Herman and Chomsky contend that the media acts as a "conduit" for the interests of elites, with the economic structures of media production influencing the type of news coverage offered to the public. 3. **Historical Context**: The book was published in 1988, during a time of significant political change and economic restructuring globally, which influenced the authors' observations about media operations and political power. 4. **Real-World Examples**: Throughout the book, they provide case studies from various historical contexts, including U.S. foreign policy and media coverage of conflicts. One notable example is the media's portrayal of the Vietnam War and how it aligned with government narratives. 5. **Cultural Impact**: "Manufacturing Consent" has influenced many discussions about media literacy, critical thinking, and the importance of questioning information sources, making it a crucial text in media studies and political economics. What about this book intrigues you? Are you interested in its critiques of media, its implications for democracy, or how it can be applied to today's media landscape?`;
 
     // User message
     if (!isAssistant) {
@@ -129,26 +129,31 @@ export const MessageBubble = memo(function MessageBubble({
     return (
         <div className="flex justify-start">
             <div className=" w-[100%] rounded-sm pr-8 pl-2 py-4  border-white border-4">
-                <div className="flex items-center justify-normal mb-4">
-                    <div className="text-sm font-mono mr-2 font-semibold uppercase tracking-wide text-[#2C2C2C]">AGNI {messageComponentIndex}</div>
-                    {
-                        currentProcessingStep && currentProcessingStep !== '' &&
-                        (
-                            <div className="flex items-center gap-2">
-                                <span className={`text-xs text-[#c5bca7] ${sourceSerif4.className}`}>
-                                    {currentProcessingStep}
-                                </span>
-                                <span className="flex gap-1">
-                                    {[0, 0.3, 0.6].map((delay) => (
-                                        <span
-                                            key={delay}
-                                            className="h-1 w-1 rounded-full bg-[#b5b4b2] animate-pulse"
-                                            style={{ animationDelay: `${delay}s` }}
-                                        />
-                                    ))}
-                                </span>
-                            </div>
-                        )}
+                <div className="flex items-center justify-between mb-4">
+                    <div className="flex items-center">
+                        <div className="text-sm font-mono mr-2 font-semibold uppercase tracking-wide text-[#2C2C2C]">AGNI {messageComponentIndex}</div>
+                        {
+                            currentProcessingStep && currentProcessingStep !== '' &&
+                            (
+                                <div className="flex items-center gap-2">
+                                    <span className={`text-xs text-[#c5bca7] ${sourceSerif4.className}`}>
+                                        {currentProcessingStep}
+                                    </span>
+                                    <span className="flex gap-1">
+                                        {[0, 0.3, 0.6].map((delay) => (
+                                            <span
+                                                key={delay}
+                                                className="h-1 w-1 rounded-full bg-[#b5b4b2] animate-pulse"
+                                                style={{ animationDelay: `${delay}s` }}
+                                            />
+                                        ))}
+                                    </span>
+                                </div>
+                            )}
+                    </div>
+                    <div className='text-xs text-[#2C2C2C]/50 font-mono'>
+                        {new Date().toLocaleDateString('en-GB')} {new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' })}
+                    </div>
                 </div>
 
                 {/* Thinking/Reasoning Section - Only show if reasoning content exists */}
@@ -190,6 +195,7 @@ export const MessageBubble = memo(function MessageBubble({
                                 segmentedMessageContent.thinking &&
                                 <div className="h-px bg-[#2C2C2C]/10" />}
                             <div className="prose prose-sm max-w-none">
+
                                 <MarkdownRenderer content={segmentedMessageContent.answer} />
                             </div>
                         </div>

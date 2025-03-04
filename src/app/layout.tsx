@@ -20,7 +20,7 @@ export const metadata: Metadata = {
     description: "Helping Humans be more Human",
     url: "http://localhost:3000",
     siteName: "AGNI",
-    locale: "en_US",
+    locale: "en_IN",
     type: "website",
   },
   twitter: {

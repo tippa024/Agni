@@ -18,12 +18,7 @@ export const UserInput = memo(function UserInput({
         e.preventDefault(); //still not sure if this is needed, but it's here to be safe
         if (!input.trim()) return;
 
-        // Add console logs
-        console.log('Chat Input Config:', {
-            userQuery: input.trim(),
-            searchEnabled: userPreferences.searchEnabled,
-            model: userPreferences.model[0],
-        });
+        console.log('Chat Input Received:', { userQuery: input.trim(), searchEnabled: userPreferences.searchEnabled, model: userPreferences.model[0], });
         handleSubmit(e);
     };
 

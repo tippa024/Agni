@@ -19,7 +19,6 @@ export async function POST(request: NextRequest) {
       query: refinedsearchdata.query,
       return_citations: Boolean(refinedsearchdata.return_citations),
       return_sources: Boolean(refinedsearchdata.return_sources),
-      verbose_mode: Boolean(refinedsearchdata.verbose_mode),
       search_type: refinedsearchdata.search_type,
       answer_type: refinedsearchdata.answer_type,
       response_language: refinedsearchdata.response_language,
