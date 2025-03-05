@@ -1,7 +1,7 @@
-import { Switch } from "../../components/ui/Switch";
-import { Label } from "../../components/ui/Label";
+import { Switch } from "./ui/Switch";
+import { Label } from "./ui/Label";
 import { memo } from "react";
-import { ChatInputProps } from "../utils/type";
+import { ChatInputProps } from "../lib/utils/type";
 
 
 export const UserInput = memo(function UserInput({

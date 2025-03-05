@@ -1,11 +1,17 @@
 import { NextRequest, NextResponse } from "next/server";
+import { promises as fsPromises } from "fs";
 import fs from "fs";
 import path from "path";
 
 export async function POST(request: NextRequest) {
   try {
     const data = await request.json();
+
+    console.log(data);
+
     const { content } = data;
+
+    console.log(content);
 
     if (!content) {
       return NextResponse.json(
@@ -14,21 +20,24 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Create the context directory if it doesn't exist
     const contextDir = path.join(process.cwd(), "context");
     if (!fs.existsSync(contextDir)) {
-      fs.mkdirSync(contextDir, { recursive: true });
+      await fsPromises.mkdir(contextDir, { recursive: true });
     }
 
-    // Generate a filename with date and time
     const timestamp = new Date().toISOString().replace(/[:.]/g, "-");
     const filename = `context-${timestamp}.md`;
     const filePath = path.join(contextDir, filename);
 
-    // Write the file
-    fs.writeFileSync(filePath, content);
+    await fsPromises.writeFile(filePath, content);
 
-    return NextResponse.json({ success: true, filename });
+    console.log(`File saved at: ${filePath}`);
+
+    return NextResponse.json({
+      success: true,
+      filename,
+      path: filePath,
+    });
   } catch (error) {
     console.error("Error saving markdown:", error);
     return NextResponse.json(

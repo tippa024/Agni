@@ -2,12 +2,12 @@
 
 import { useState, useRef, useEffect } from 'react';
 import { Source_Serif_4 } from 'next/font/google';
-import { MessageBubble } from './components/MessageBubble';
-import { UserInput } from './lib/handlers/UserInput';
-import { handleRawUserInput } from './lib/handlers/MasterHandler';
-import { systemMessage } from './lib/utils/promt';
-import { Message, UserPreferences } from './lib/utils/type';
-import Markdown from 'react-markdown';
+import { MessageBubble } from "./components/MessageBubble";
+import { UserInput } from "./components/ChatInput";
+import TextInput from "./components/TextInput";
+import { handleRawUserInput } from "./lib/handlers/MasterHandler";
+import { systemMessage } from "./lib/utils/promt";
+import { Message, UserPreferences } from "./lib/utils/type";
 import MarkdownRenderer from './lib/utils/render';
 
 
@@ -63,7 +63,7 @@ export default function Home() {
     <main className="flex flex-col min-h-screen w-screen bg-white">
       <div className='flex justify-between items-center'>
         <div className='flex-1'></div>
-        <div className='text-sm text-[#4A4235] text-center flex-1 font-mono opacity-25'>
+        <div suppressHydrationWarning className='text-sm text-[#4A4235] text-center flex-1 font-mono opacity-25'>
           {new Date().toLocaleDateString('en-GB')} {new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' })}
         </div>
         <div className='flex-1 flex justify-end'>
@@ -132,48 +132,9 @@ export default function Home() {
         )
 
       ) : (
-        <div className='flex flex-col items-center'>
-          <textarea
-            className="w-2/3 mx-auto p-4 rounded-lg resize-none focus:outline-none focus:ring-0 bg-white min-h-[100px]"
-            rows={1}
-            onInput={(e) => {
-              const target = e.target as HTMLTextAreaElement;
-              target.style.height = 'auto';
-              target.style.height = `${target.scrollHeight}px`;
-            }}
-            value={text}
-            onChange={(e) => setText(e.target.value)}
-            placeholder="Start typing..."
-            style={{ overflowY: 'auto' }}
-          />
-          <button
-            className="mt-4 px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors"
-            onClick={async () => {
-              try {
-                const response = await fetch('/api/saveMarkdown', {
-                  method: 'POST',
-                  headers: {
-                    'Content-Type': 'application/json',
-                  },
-                  body: JSON.stringify({ content: text }),
-                });
-
-                if (response.ok) {
-                  alert('File saved successfully to context folder!');
-                } else {
-                  const error = await response.text();
-                  alert(`Error saving file: ${error}`);
-                }
-              } catch (error) {
-                console.error('Error saving markdown file:', error);
-                alert('Failed to save file. Check console for details.');
-              }
-            }}
-          >
-            Save to Context
-          </button>
-          <div className='prose prose-sm max-w-3xl'>
-            <MarkdownRenderer content={text} />
+        <div className='flex flex-col h-screen w-full p-4'>
+          <div className='flex-1 flex items-top justify-center'>
+            <TextInput />
           </div>
         </div>
       )

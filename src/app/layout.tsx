@@ -5,40 +5,20 @@ import { Analytics } from "@vercel/analytics/react";
 
 const inter = Inter({ subsets: ["latin"] });
 
-export const viewport: Viewport = {
-  width: "device-width",
-  initialScale: 1,
-  maximumScale: 1,
-};
-
 export const metadata: Metadata = {
   title: "AGNI",
-  description: "Helping Humans be more Human",
-  metadataBase: new URL("http://localhost:3000"),
-  openGraph: {
-    title: "AGNI",
-    description: "Helping Humans be more Human",
-    url: "http://localhost:3000",
-    siteName: "AGNI",
-    locale: "en_IN",
-    type: "website",
+  description: "No-Distraction Personal Digital System",
+  icons: {
+    icon: [
+      { url: '/next.svg', sizes: 'any' }
+    ],
   },
-  twitter: {
-    title: "AGNI",
-    description: "Helping Humans be more Human",
-    card: "summary_large_image",
-  },
-  robots: {
-    index: true,
-    follow: true,
-    googleBot: {
-      index: true,
-      follow: true,
-      "max-video-preview": -1,
-      "max-image-preview": "large",
-      "max-snippet": -1,
-    },
-  },
+};
+
+export const viewport: Viewport = {
+  width: 'device-width',
+  initialScale: 1,
+  maximumScale: 1,
 };
 
 export default function RootLayout({
@@ -49,7 +29,7 @@ export default function RootLayout({
   return (
     <html lang="en" className={inter.className}>
       <body>
-        <main className="flex flex-col items-center justify-between bg-black">
+        <main>
           {children}
         </main>
         <Analytics />

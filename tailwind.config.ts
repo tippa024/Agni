@@ -50,9 +50,8 @@ const config: Config = {
               fontFamily: "monospace",
             },
             pre: {
-              backgroundColor: "#2D2011", // Dark brown for code blocks
-              borderRadius: "0.375rem",
-              border: "1px solid rgba(230, 179, 37, 0.2)",
+              backgroundColor: "#7F3159", // Slightly lighter dark golden brown for code blocks
+              border: "1px solid rgba(230, 179, 37, 0.3)",
               padding: "1rem",
               code: {
                 backgroundColor: "transparent",
