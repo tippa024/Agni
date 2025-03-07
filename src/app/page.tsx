@@ -74,8 +74,6 @@ export default function Home() {
           </button>
         </div>
       </div>
-
-
       {chatMode === 'chat' ? (
         messages.length === 0 ? (
           <div className=" w-full  flex flex-col min-h-[90vh] items-center justify-center p-4">
@@ -92,7 +90,7 @@ export default function Home() {
           </div>
         ) : (
           // Regular chat layout
-          <div className="flex flex-col h-screen">
+          (<div className="flex flex-col h-screen">
             <div className="flex-1 w-full max-w-3xl mx-auto px-4 overflow-hidden overflow-wrap-break-word">
               <div className="h-full py-4  overflow-y-auto scrollbar-hide">
                 <div className="space-y-4 pb-2 rounded-lg">
@@ -115,7 +113,6 @@ export default function Home() {
                 </div>
               </div>
             </div>
-
             <div className="sticky bottom-0 left-0 right-0 bg-white p-4 sm:pb-6 border-t border-gray-200">
               <div className="max-w-3xl mx-auto">
                 <UserInput
@@ -128,7 +125,7 @@ export default function Home() {
                 />
               </div>
             </div>
-          </div>
+          </div>)
         )
 
       ) : (
