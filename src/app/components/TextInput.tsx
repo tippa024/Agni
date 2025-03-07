@@ -25,7 +25,7 @@ export default function TextInput() {
             <div className="basis-1/6">
                 <div className="flex justify-end px-4 py-2">
                     {showSaveToContextButton && text.length > 0 && <button
-                        className="px-2 py-1 text-gray-700 rounded-md opacity-10 hover:opacity-100 hover:bg-gray-200 transition-colors transition-opacity text-sm font-medium"
+                        className="px-2 py-1 text-gray-700 rounded-md opacity-10 hover:opacity-100 hover:bg-gray-200 transition-opacity text-sm font-medium"
                         onClick={async () => {
                             try {
                                 const response = await fetch('/api/MarkDown/Save', {
