@@ -7,11 +7,7 @@ export async function POST(request: NextRequest) {
   try {
     const data = await request.json();
 
-    console.log(data);
-
     const { content } = data;
-
-    console.log(content);
 
     if (!content) {
       return NextResponse.json(
@@ -25,7 +21,9 @@ export async function POST(request: NextRequest) {
       await fsPromises.mkdir(contextDir, { recursive: true });
     }
 
-    const timestamp = new Date().toISOString().replace(/[:.]/g, "-");
+    const timestamp = new Date()
+      .toLocaleString("en-IN", { timeZone: "Asia/Kolkata" })
+      .replace(/[/:\s]/g, "-");
     const filename = `context-${timestamp}.md`;
     const filePath = path.join(contextDir, filename);
 

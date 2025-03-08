@@ -33,6 +33,12 @@ const config: Config = {
             h4: {
               color: "#B4860F", // Continuing the hierarchy
             },
+            h5: {
+              color: "#A2760E", // Continuing the hierarchy
+            },
+            h6: {
+              color: "#90660D", // Continuing the hierarchy
+            },
             strong: {
               color: "#8B5E00", // Rich brown for emphasis
               fontWeight: "600",
@@ -43,7 +49,7 @@ const config: Config = {
             },
             code: {
               color: "#FFFFFF", // White text for code
-              backgroundColor: "#4A3519", // Golden brown background
+              backgroundColor: "#6B1178", // Golden brown background
               borderRadius: "0.25rem",
               padding: "0.125rem 0.25rem",
               border: "1px solid rgba(230, 179, 37, 0.3)", // Subtle gold border

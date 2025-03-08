@@ -18,6 +18,12 @@ export const systemMessage: Message = {
   For context, Today's date is ${today}`,
 };
 
+export const ChatSessionToMarkDownPrompt: Message = {
+  role: "system",
+  content: `You are a helpful assistant that converts a chat session into a markdown format. You note the user's intent, the context in which the question is asked, and the sources used to answer the question and then you convert the chat session into a markdown format. You keep whats essential to the user's question and the answer, and discard the rest. The PoV is to understand the user's intent and the context in which the question is asked. The chat session is as follows:
+  `,
+};
+
 const OpenPerplexSearchParametersSchema: OpenPerplexSearchParametersFormat = {
   name: "search_parameters",
   schema: {

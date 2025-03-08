@@ -5,10 +5,10 @@ import { Source_Serif_4 } from 'next/font/google';
 import { MessageBubble } from "./components/MessageBubble";
 import { UserInput } from "./components/ChatInput";
 import TextInput from "./components/TextInput";
-import { handleRawUserInput } from "./lib/handlers/MasterHandler";
+import { handleRawUserInput } from "./lib/ChatHandlers/MasterHandler";
 import { systemMessage } from "./lib/utils/promt";
-import { Message, UserPreferences } from "./lib/utils/type";
-import MarkdownRenderer from './lib/utils/render';
+import { Message, UserPreferences, conversationHistory } from "./lib/utils/type";
+
 
 
 const sourceSerif4 = Source_Serif_4({
@@ -20,7 +20,7 @@ const sourceSerif4 = Source_Serif_4({
 export default function Home() {
   const [chatMode, setChatMode] = useState<'chat' | 'text'>('chat');
   const [input, setInput] = useState('');
-  const [text, setText] = useState('');
+  const [context, setContext] = useState<boolean>(false);
   const [messages, setMessages] = useState<Message[]>([]);
   const [currentProcessingStep, setCurrentProcessingStep] = useState<string>('');
 
@@ -30,7 +30,7 @@ export default function Home() {
     model: ["gpt-4o-mini", "OpenAI"] as ["gpt-4o-mini", "OpenAI"] | ["claude-3-5-haiku-20241022", "Anthropic"] | ["claude-3-5-sonnet-20241022", "Anthropic"],
   });
 
-  const [conversationHistory, setConversationHistory] = useState<{ role: string; content: string }[]>([systemMessage]);
+  const [conversationHistory, setConversationHistory] = useState<conversationHistory[]>([]);
 
   const onSubmit = async (e: React.FormEvent) => {
     await handleRawUserInput(
@@ -41,6 +41,7 @@ export default function Home() {
         userPreferences,
         currentProcessingStep,
         conversationHistory,
+        context,
       },
       {
         setMessages,
@@ -59,10 +60,61 @@ export default function Home() {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [messages]);
 
+
+  useEffect(() => {
+    const handleBeforeUnload = async (e: BeforeUnloadEvent) => {
+
+      e.preventDefault();
+
+      try {
+        // Try to save the conversation
+        if (conversationHistory.length > 0) {
+          console.log("Saving conversation before unload...");
+
+          fetch("/api/History/ConversationHistory", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ conversationHistory }),
+          });
+
+          fetch("/api/History/MarkDown/Save", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              content: conversationHistory.map(msg =>
+                `## ${msg.role}\n${msg.content}`
+              ).join('\n\n')
+            }),
+            keepalive: true
+          });
+        }
+      } catch (error) {
+        console.error("Error saving conversation:", error);
+      }
+      return "Are you sure you want to leave? Your conversation will be saved.";
+    };
+
+    window.addEventListener("beforeunload", handleBeforeUnload);
+
+    return () => {
+      window.removeEventListener("beforeunload", handleBeforeUnload);
+    };
+  }, [conversationHistory]);
+
   return (
     <main className="flex flex-col min-h-screen w-screen bg-white">
       <div className='flex justify-between items-center'>
-        <div className='flex-1'></div>
+        <div className='flex-1 flex justify-start'>
+          <button className={`hover:opacity-80 transition-colors duration-200 text-[#4A4235] font-medium text-sm
+            ${context ? 'opacity-80 text-white bg-[#4A4235] rounded-md m-1 px-2 py-0.5' : ' opacity-20 px-3 py-1.5 '}
+          `}
+            onClick={() => setContext(!context)}
+            disabled={chatMode === 'text'}
+          >
+            Context
+          </button>
+        </div>
+
         <div suppressHydrationWarning className='text-sm text-[#4A4235] text-center flex-1 font-mono opacity-25'>
           {new Date().toLocaleDateString('en-GB')} {new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' })}
         </div>

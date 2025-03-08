@@ -8,7 +8,7 @@ export const AnthropicChatResponse = async (
   model: string
 ) => {
   console.log("calling Anthropic API");
-  const finalResponse = await fetch("/api/Anthropic", {
+  const finalResponse = await fetch("/api/Models/Anthropic/Chat", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({
@@ -49,6 +49,11 @@ export const AnthropicChatResponse = async (
           " I apologize, but I encountered an error while processing your request. Please try again." +
           new Error().stack?.split("\n")[1]?.match(/\d+/)?.[0] +
           errorText,
+        timestamp: new Date().toLocaleString("en-IN", {
+          timeZone: "Asia/Kolkata",
+        }),
+        model: model,
+        modelprovider: "Anthropic",
       },
     ]);
 
@@ -88,7 +93,15 @@ export const AnthropicChatResponse = async (
 
     actions.setConversationHistory((prev) => [
       ...prev,
-      { role: "assistant", content: content },
+      {
+        role: "assistant",
+        content: content,
+        timestamp: new Date().toLocaleString("en-IN", {
+          timeZone: "Asia/Kolkata",
+        }),
+        model: model,
+        modelprovider: "Anthropic",
+      },
     ]);
     console.log("History updated");
   } catch (streamError) {
@@ -116,6 +129,11 @@ export const AnthropicChatResponse = async (
           " I apologize, but I encountered an error while parsing the Anthropic API response. Please try again. location: finalResponsehandler.ts - AnthropicChatResponse line:" +
           new Error().stack?.split("\n")[1]?.match(/\d+/)?.[0] +
           streamError,
+        timestamp: new Date().toLocaleString("en-IN", {
+          timeZone: "Asia/Kolkata",
+        }),
+        model: model,
+        modelprovider: "Anthropic",
       },
     ]);
     console.log(
@@ -134,7 +152,7 @@ export const OpenAIChatResponse = async (
   model: string
 ) => {
   console.log("calling OpenAI API");
-  const finalResponse = await fetch("/api/OpenAI/Chat", {
+  const finalResponse = await fetch("/api/Models/OpenAI/Chat", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({
@@ -165,7 +183,15 @@ export const OpenAIChatResponse = async (
 
     actions.setConversationHistory((prev) => [
       ...prev,
-      { role: "assistant", content: errorText },
+      {
+        role: "assistant",
+        content: errorText,
+        timestamp: new Date().toLocaleString("en-IN", {
+          timeZone: "Asia/Kolkata",
+        }),
+        model: model,
+        modelprovider: "OpenAI",
+      },
     ]);
 
     throw new Error(
@@ -197,7 +223,15 @@ export const OpenAIChatResponse = async (
     }
     actions.setConversationHistory((prev) => [
       ...prev,
-      { role: "assistant", content: content },
+      {
+        role: "assistant",
+        content: content,
+        timestamp: new Date().toLocaleString("en-IN", {
+          timeZone: "Asia/Kolkata",
+        }),
+        model: model,
+        modelprovider: "OpenAI",
+      },
     ]);
     return content;
   } catch (streamError) {
@@ -226,6 +260,11 @@ export const OpenAIChatResponse = async (
           " I apologize, but I encountered an error while processing your request. Please try again. location: finalResponsehandler.ts - OpenAIChatResponse line:" +
           new Error().stack?.split("\n")[1]?.match(/\d+/)?.[0] +
           streamError,
+        timestamp: new Date().toLocaleString("en-IN", {
+          timeZone: "Asia/Kolkata",
+        }),
+        model: model,
+        modelprovider: "OpenAI",
       },
     ]);
     throw streamError;

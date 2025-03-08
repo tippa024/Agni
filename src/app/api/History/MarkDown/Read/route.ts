@@ -22,6 +22,7 @@ export async function GET(request: NextRequest) {
     // Get the filename from the URL if provided
     const { searchParams } = new URL(request.url);
     const filename = searchParams.get("filename");
+    const includeContent = searchParams.get("includeContent") === "true";
 
     // If filename is provided, return that specific file
     if (filename) {
@@ -35,10 +36,21 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ filename, content });
     }
 
-    // Otherwise return the list of all files
-    return NextResponse.json({
-      files: markdownFiles,
-    });
+    //If includeContect is true, then return both filenames and their contents
+    // If includeContent is true, return both filenames and their contents
+    if (includeContent) {
+      const filesWithContent = await Promise.all(
+        markdownFiles.map(async (filename) => {
+          const filePath = path.join(contextDir, filename);
+          const content = await fsPromises.readFile(filePath, "utf-8");
+          return { filename, content };
+        })
+      );
+
+      return NextResponse.json({
+        files: filesWithContent,
+      });
+    }
   } catch (error) {
     console.error("Error reading markdown files:", error);
     return NextResponse.json(

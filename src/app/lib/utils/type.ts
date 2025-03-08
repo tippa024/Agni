@@ -24,6 +24,9 @@ export interface UserPreferences {
 export interface conversationHistory {
   role: string;
   content: string;
+  timestamp: string;
+  model?: string;
+  modelprovider?: string;
 }
 
 export interface SearchResult {
@@ -45,6 +48,7 @@ export interface ChatState {
   userPreferences: UserPreferences;
   currentProcessingStep: string;
   conversationHistory: conversationHistory[];
+  context: boolean;
 }
 
 export interface ChatActions {

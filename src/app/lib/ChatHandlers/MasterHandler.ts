@@ -1,10 +1,10 @@
 import { search } from "./2.Agents/SearchHandler";
-import { main } from "./2.Agents/TwitterHandler";
+
 import {
   OpenAIChatResponse,
   AnthropicChatResponse,
 } from "./3.Output/FinalResponseHandler";
-import { ChatState, ChatActions, SearchResult } from "../utils/type";
+import { ChatState, ChatActions } from "../utils/type";
 
 // Main function to handle chat form submissions
 export async function handleRawUserInput(
@@ -13,6 +13,11 @@ export async function handleRawUserInput(
   actions: ChatActions
 ) {
   actions.setCurrentProcessingStep("Understanding User Input");
+
+  console.log(
+    "Current line number:",
+    new Error().stack?.split("\n")[1]?.match(/at.*:(\d+)/)?.[1] || "unknown"
+  );
 
   e.preventDefault(); //still not sure if this is needed, but it's here to be safe
   if (!state.input.trim()) return;
@@ -44,6 +49,7 @@ export async function handleRawUserInput(
       userMessage,
       searchEnabled: state.userPreferences.searchEnabled,
       model: state.userPreferences.model,
+      context: state.context,
     });
 
     let contextualizedInput = userMessage;
@@ -72,9 +78,24 @@ export async function handleRawUserInput(
       }
     }
 
+    if (state.context) {
+      const context = await fetch("/api/MarkDown/Read?includeContent=true");
+      const contextData = await context.json();
+      console.log(contextData);
+      contextualizedInput += `\n\nContext:\n${contextData.files
+        .map((file: any) => file.content)
+        .join("\n")}`;
+    }
+
     actions.setConversationHistory((prev) => [
       ...prev,
-      { role: "user", content: contextualizedInput },
+      {
+        role: "user",
+        content: contextualizedInput,
+        timestamp: new Date().toLocaleString("en-IN", {
+          timeZone: "Asia/Kolkata",
+        }),
+      },
     ]);
 
     actions.setCurrentProcessingStep("Final Response");
@@ -84,7 +105,11 @@ export async function handleRawUserInput(
       ...state.conversationHistory
         .filter((msg) => msg.role !== "system")
         .reduce((acc: any[], msg, index, array) => {
-          acc.push(msg);
+          // Only push role and content from the message
+          acc.push({
+            role: msg.role,
+            content: msg.content,
+          });
           if (
             msg.role === "user" &&
             index < array.length - 1 &&
@@ -169,6 +194,9 @@ export async function handleRawUserInput(
       {
         role: "user",
         content: userMessage,
+        timestamp: new Date().toLocaleString("en-IN", {
+          timeZone: "Asia/Kolkata",
+        }),
       },
       {
         role: "assistant",
@@ -177,6 +205,11 @@ export async function handleRawUserInput(
           "location: MasterHandler.ts line:" +
           new Error().stack?.split("\n")[1]?.match(/\d+/)?.[0] +
           error,
+        timestamp: new Date().toLocaleString("en-IN", {
+          timeZone: "Asia/Kolkata",
+        }),
+        model: state.userPreferences.model[0],
+        modelprovider: state.userPreferences.model[1],
       },
     ]);
   }
