@@ -38,7 +38,8 @@ export async function search(
   userMessage: string,
   chatHistory: { role: string; content: string }[],
   actions: ChatActions,
-  queryRefinement: boolean
+  queryRefinement: boolean,
+  queryRefinementModel: string
 ) {
   searchIO.initialQuery = userMessage;
   if (queryRefinement) {
@@ -56,16 +57,31 @@ export async function search(
       { role: "user", content: searchIO.initialQuery },
     ];
 
-    actions.setConversationHistory((prev) => [...prev, ...refimentmessages]);
+    actions.setConversationHistory((prev) => [
+      ...prev,
+      ...refimentmessages.map((msg) => ({
+        ...msg,
+        timestamp: new Date().toLocaleString("en-IN", {
+          timeZone: "Asia/Kolkata",
+        }),
+      })),
+    ]);
 
     try {
-      console.log("Search Query Refinement using OpenAI API - Starting");
+      console.log(
+        "Search Query Refinement using OpenAI API using model " +
+          queryRefinementModel +
+          " - Starting"
+      );
 
-      const response = await fetch("/api/OpenAI/SearchQueryRefinement", {
+      // const model = await getModel(queryRefinementModel);
+
+      const response = await fetch("/api/Models/OpenAI/SearchQueryRefinement", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           messages: refimentmessages,
+          model: queryRefinementModel,
         }),
       });
 
@@ -78,17 +94,22 @@ export async function search(
           `Failed to get response from Search Query Refinement: ${response.statusText}`
         );
       }
+
       searchIO.searchParameters = await response.json();
+
       console.log("Refined SearchParameters:", searchIO.searchParameters);
+
       actions.setCurrentProcessingStep("Intializing Search");
+
       console.log("Search Query Refinement using OpenAI API - Completed");
     } catch (error) {
       console.error(
-        "Search Query Refinement Error in Search.ts line:" +
-          new Error().stack?.split("\n")[1]?.match(/\d+/)?.[0] +
+        "Search Query Refinement Error" +
+          "location: SearchHandler.ts" +
           ", error:" +
           error
       );
+
       actions.setCurrentProcessingStep("Intializing Search");
       console.log("Search Query Refinement using OpenAI API - Failed");
 
@@ -173,6 +194,11 @@ export async function search(
           JSON.stringify(searchIO.OpenPerplexSearchOutput.sources) +
           " and the extracted content from openperplex API is " +
           searchIO.OpenPerplexSearchOutput.llm_response,
+        timestamp: new Date().toLocaleString("en-IN", {
+          timeZone: "Asia/Kolkata",
+        }),
+        model: queryRefinementModel,
+        modelprovider: "OpenPerplex + OpenAI",
       },
     ]);
 

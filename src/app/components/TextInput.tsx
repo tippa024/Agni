@@ -119,6 +119,12 @@ export default function TextInput() {
                     }}
                 />
             </div>
+            <div className='flex justify-end basis-1/6'>
+                <button className={`bg-[#4A4235] opacity-20 hover:opacity-80 text-white px-3 py-1.5 transition-colors duration-200 font-medium text-sm`}
+                >
+                    Context
+                </button>
+            </div>
         </div>
         {
             showMarkdown && (
@@ -127,6 +133,7 @@ export default function TextInput() {
                 </div>
             )
         }
+
         <div className="basis-1/6">
             <ReadContextFiles />
         </div>

@@ -3,6 +3,8 @@ import { promises as fsPromises } from "fs";
 import fs from "fs";
 import path from "path";
 
+export const dynamic = "force-dynamic";
+
 export async function POST(request: NextRequest) {
   try {
     const data = await request.json();
@@ -29,7 +31,8 @@ export async function POST(request: NextRequest) {
 
     await fsPromises.writeFile(filePath, content);
 
-    console.log(`File saved at: ${filePath}`);
+    console.log(`########## File saved at: ${filePath}`);
+    console.log("########## Content", content);
 
     return NextResponse.json({
       success: true,

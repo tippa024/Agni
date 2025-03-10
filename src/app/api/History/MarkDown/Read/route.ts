@@ -3,6 +3,8 @@ import { promises as fsPromises } from "fs";
 import fs from "fs";
 import path from "path";
 
+export const dynamic = "force-dynamic";
+
 export async function GET(request: NextRequest) {
   try {
     const contextDir = path.join(process.cwd(), "context");
@@ -36,7 +38,6 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ filename, content });
     }
 
-    //If includeContect is true, then return both filenames and their contents
     // If includeContent is true, return both filenames and their contents
     if (includeContent) {
       const filesWithContent = await Promise.all(
@@ -51,6 +52,11 @@ export async function GET(request: NextRequest) {
         files: filesWithContent,
       });
     }
+
+    // Default case: return just the list of filenames
+    return NextResponse.json({
+      files: markdownFiles,
+    });
   } catch (error) {
     console.error("Error reading markdown files:", error);
     return NextResponse.json(

@@ -4,7 +4,9 @@ import { NextRequest, NextResponse } from "next/server";
 import fs from "fs";
 import path from "path";
 import { promises as fsPromises } from "fs";
-import { ConversationHistory } from "@/app/utils/type";
+import { conversationHistory } from "@/app/lib/utils/type";
+
+export const dynamic = "force-dynamic";
 
 export async function POST(request: NextRequest) {
   console.log("Saving conversation history...");
@@ -16,6 +18,12 @@ export async function POST(request: NextRequest) {
     process.cwd(),
     "conversationHistory.json"
   );
+
+  // Create directory if it doesn't exist
+  const conversationHistoryDir = path.dirname(conversationHistoryPath);
+  if (!fs.existsSync(conversationHistoryDir)) {
+    await fsPromises.mkdir(conversationHistoryDir, { recursive: true });
+  }
 
   let existingHistory = [];
   if (fs.existsSync(conversationHistoryPath)) {
@@ -30,13 +38,13 @@ export async function POST(request: NextRequest) {
 
   // Check for duplicate messages based on timestamps
   const newMessages = conversationHistory.filter(
-    (newMsg: ConversationHistory) => {
+    (newMsg: conversationHistory) => {
       // If no timestamp, treat as new message
       if (!newMsg.timestamp) return true;
 
       // Check if this message already exists in history
       return !existingHistory.some(
-        (existingMsg: ConversationHistory) =>
+        (existingMsg: conversationHistory) =>
           existingMsg.timestamp === newMsg.timestamp &&
           existingMsg.role === newMsg.role
       );

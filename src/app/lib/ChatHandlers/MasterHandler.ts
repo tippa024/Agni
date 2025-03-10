@@ -57,13 +57,15 @@ export async function handleRawUserInput(
     // If search is enabled, perform search operations
     if (state.userPreferences.searchEnabled) {
       const queryrefinementneeded = true;
+      const queryrefinementmodel = "gpt-4o-mini";
 
       try {
         const searchdatainfusedquery = await search(
           userMessage,
           state.conversationHistory,
           actions,
-          queryrefinementneeded
+          queryrefinementneeded,
+          queryrefinementmodel
         );
         if (searchdatainfusedquery) {
           contextualizedInput = searchdatainfusedquery;
@@ -79,7 +81,9 @@ export async function handleRawUserInput(
     }
 
     if (state.context) {
-      const context = await fetch("/api/MarkDown/Read?includeContent=true");
+      const context = await fetch(
+        "/api/History/MarkDown/Read?includeContent=true"
+      );
       const contextData = await context.json();
       console.log(contextData);
       contextualizedInput += `\n\nContext:\n${contextData.files
@@ -183,8 +187,7 @@ export async function handleRawUserInput(
         role: "assistant",
         content:
           "I apologize, but I encountered an error while processing your request. Please try again." +
-          "location: MasterHandler.ts line:" +
-          new Error().stack?.split("\n")[1]?.match(/\d+/)?.[0] +
+          "location: MasterHandler.ts" +
           error,
         searchResults: [],
       },

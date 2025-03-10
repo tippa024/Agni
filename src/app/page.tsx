@@ -6,8 +6,8 @@ import { MessageBubble } from "./components/MessageBubble";
 import { UserInput } from "./components/ChatInput";
 import TextInput from "./components/TextInput";
 import { handleRawUserInput } from "./lib/ChatHandlers/MasterHandler";
-import { systemMessage } from "./lib/utils/promt";
 import { Message, UserPreferences, conversationHistory } from "./lib/utils/type";
+import { ChatToContext } from "./lib/ChatHandlers/3.Output/ChatSessionToMarkDown";
 
 
 
@@ -60,61 +60,11 @@ export default function Home() {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [messages]);
 
-
-  useEffect(() => {
-    const handleBeforeUnload = async (e: BeforeUnloadEvent) => {
-
-      e.preventDefault();
-
-      try {
-        // Try to save the conversation
-        if (conversationHistory.length > 0) {
-          console.log("Saving conversation before unload...");
-
-          fetch("/api/History/ConversationHistory", {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ conversationHistory }),
-          });
-
-          fetch("/api/History/MarkDown/Save", {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({
-              content: conversationHistory.map(msg =>
-                `## ${msg.role}\n${msg.content}`
-              ).join('\n\n')
-            }),
-            keepalive: true
-          });
-        }
-      } catch (error) {
-        console.error("Error saving conversation:", error);
-      }
-      return "Are you sure you want to leave? Your conversation will be saved.";
-    };
-
-    window.addEventListener("beforeunload", handleBeforeUnload);
-
-    return () => {
-      window.removeEventListener("beforeunload", handleBeforeUnload);
-    };
-  }, [conversationHistory]);
-
   return (
     <main className="flex flex-col min-h-screen w-screen bg-white">
-      <div className='flex justify-between items-center'>
-        <div className='flex-1 flex justify-start'>
-          <button className={`hover:opacity-80 transition-colors duration-200 text-[#4A4235] font-medium text-sm
-            ${context ? 'opacity-80 text-white bg-[#4A4235] rounded-md m-1 px-2 py-0.5' : ' opacity-20 px-3 py-1.5 '}
-          `}
-            onClick={() => setContext(!context)}
-            disabled={chatMode === 'text'}
-          >
-            Context
-          </button>
+      <div className='flex justify-between items-center border'>
+        <div className='flex-1'>
         </div>
-
         <div suppressHydrationWarning className='text-sm text-[#4A4235] text-center flex-1 font-mono opacity-25'>
           {new Date().toLocaleDateString('en-GB')} {new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' })}
         </div>
@@ -143,6 +93,27 @@ export default function Home() {
         ) : (
           // Regular chat layout
           (<div className="flex flex-col h-screen">
+            <div className='flex justify-between'>
+              <div className='flex justify-start'>
+                <button className='bg-[#4A4235] text-white px-3 py-1.5 opacity-20 hover:opacity-80 transition-colors duration-200 font-medium text-sm'
+                  onClick={() => {
+                    ChatToContext(conversationHistory);
+                  }}
+                >
+                  Save
+                </button>
+              </div>
+              <div className='flex justify-end'>
+                <button className={`bg-[#4A4235] text-white px-3 py-1.5 transition-colors duration-200 font-medium text-sm
+                 ${context ? 'opacity-80' : 'opacity-20'}`}
+                  onClick={() => {
+                    setContext(!context);
+                  }}
+                >
+                  Context
+                </button>
+              </div>
+            </div>
             <div className="flex-1 w-full max-w-3xl mx-auto px-4 overflow-hidden overflow-wrap-break-word">
               <div className="h-full py-4  overflow-y-auto scrollbar-hide">
                 <div className="space-y-4 pb-2 rounded-lg">
