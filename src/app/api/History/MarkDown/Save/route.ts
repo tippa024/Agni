@@ -32,7 +32,6 @@ export async function POST(request: NextRequest) {
     await fsPromises.writeFile(filePath, content);
 
     console.log(`########## File saved at: ${filePath}`);
-    console.log("########## Content", content);
 
     return NextResponse.json({
       success: true,

@@ -4,7 +4,7 @@ import { useState, useRef, useEffect } from 'react';
 import { Source_Serif_4 } from 'next/font/google';
 import { MessageBubble } from "./components/MessageBubble";
 import { UserInput } from "./components/ChatInput";
-import TextInput from "./components/TextInput";
+import TextInput from "./components/TextInput/TextInput";
 import { handleRawUserInput } from "./lib/ChatHandlers/MasterHandler";
 import { Message, UserPreferences, conversationHistory } from "./lib/utils/type";
 import { ChatToContext } from "./lib/ChatHandlers/3.Output/ChatSessionToMarkDown";
@@ -152,10 +152,8 @@ export default function Home() {
         )
 
       ) : (
-        <div className='flex flex-col h-screen w-full p-4'>
-          <div className='flex-1 flex items-top justify-center'>
-            <TextInput />
-          </div>
+        <div className='h-screen w-full bg-white'>
+          <TextInput />
         </div>
       )
       }

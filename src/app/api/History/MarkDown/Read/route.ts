@@ -65,37 +65,3 @@ export async function GET(request: NextRequest) {
     );
   }
 }
-
-export async function POST(request: NextRequest) {
-  try {
-    const { filename } = await request.json();
-
-    if (!filename) {
-      return NextResponse.json(
-        { error: "Filename is required" },
-        { status: 400 }
-      );
-    }
-
-    const contextDir = path.join(process.cwd(), "context");
-    const filePath = path.join(contextDir, filename);
-
-    if (!fs.existsSync(filePath)) {
-      return NextResponse.json({ error: "File not found" }, { status: 404 });
-    }
-
-    const content = await fsPromises.readFile(filePath, "utf-8");
-
-    return NextResponse.json({
-      success: true,
-      filename,
-      content,
-    });
-  } catch (error) {
-    console.error("Error reading markdown file:", error);
-    return NextResponse.json(
-      { error: "Failed to read markdown file" },
-      { status: 500 }
-    );
-  }
-}

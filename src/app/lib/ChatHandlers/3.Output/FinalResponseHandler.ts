@@ -202,25 +202,45 @@ export const OpenAIChatResponse = async (
   const decoder = new TextDecoder();
   let content = "";
 
+  let lastUpdateTime = Date.now();
+  let chunkCount = 0;
+  const updateInterval = 100; // 100ms
+
   try {
     while (true) {
+      console.log("while", Date.now());
       const { done, value } = await reader.read();
       if (done) break;
 
       const chunk = decoder.decode(value, { stream: true });
       if (chunk.trim()) {
         content += chunk;
-
-        actions.setMessages((prev) => {
-          return prev.map((msg, index) => {
-            if (index === prev.length - 1 && msg.role === "assistant") {
-              return { ...msg, content: content };
-            }
-            return msg;
+        chunkCount++;
+        if (Date.now() - lastUpdateTime > updateInterval) {
+          actions.setMessages((prev) => {
+            return prev.map((msg, index) => {
+              if (index === prev.length - 1 && msg.role === "assistant") {
+                return { ...msg, content: content };
+              }
+              return msg;
+            });
           });
-        });
+          lastUpdateTime = Date.now();
+        }
       }
     }
+
+    if (content.trim()) {
+      actions.setMessages((prev) => {
+        return prev.map((msg, index) => {
+          if (index === prev.length - 1 && msg.role === "assistant") {
+            return { ...msg, content: content };
+          }
+          return msg;
+        });
+      });
+    }
+
     actions.setConversationHistory((prev) => [
       ...prev,
       {
