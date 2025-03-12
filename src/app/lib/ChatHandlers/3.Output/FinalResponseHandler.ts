@@ -208,7 +208,6 @@ export const OpenAIChatResponse = async (
 
   try {
     while (true) {
-      console.log("while", Date.now());
       const { done, value } = await reader.read();
       if (done) break;
 

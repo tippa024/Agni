@@ -7,7 +7,7 @@ import { UserInput } from "./components/ChatInput";
 import TextInput from "./components/TextInput/TextInput";
 import { handleRawUserInput } from "./lib/ChatHandlers/MasterHandler";
 import { Message, UserPreferences, conversationHistory } from "./lib/utils/type";
-import { ChatToContext } from "./lib/ChatHandlers/3.Output/ChatSessionToMarkDown";
+import { ChatToContext } from "./lib/ChatHandlers/2.Agents/ChatSessionToMarkDown";
 
 
 

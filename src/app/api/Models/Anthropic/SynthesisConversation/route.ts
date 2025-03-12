@@ -16,7 +16,6 @@ const anthropic = new Anthropic({
 export async function POST(req: NextRequest) {
   try {
     const body = await req.json();
-    console.log("Request body structure:", Object.keys(body));
 
     const { messages, model } = body;
 
@@ -37,17 +36,46 @@ export async function POST(req: NextRequest) {
       model: model,
       messages: messages,
       max_tokens: 1024,
-      temperature: 0.5,
+      tools: [
+        {
+          name: "SynthesizeConversationToMarkDown",
+          description: "Synthesize a conversation to markdown",
+          input_schema: {
+            type: "object",
+            properties: {
+              filename: {
+                type: "string",
+                description:
+                  "A descriptive filename for the markdown document (without extension)",
+              },
+              content: {
+                type: "string",
+                description: "The formatted markdown content",
+              },
+            },
+            required: ["filename", "content"],
+          },
+        },
+      ],
     });
 
-    // Fix the type error by checking the content type
-    const content = response.content;
+    console.log("Synthesis Conversation API Response", response);
 
-    const markdown = "type" in content ? content.text : "";
+    // Extract the tool_use content from the response
+    const toolUseContent = response.content.find(
+      (item) => item.type === "tool_use"
+    ) as
+      | { type: string; input: { content: string; filename: string } }
+      | undefined;
+
+    // Get the markdown content from the tool_use input
+    const markdown = toolUseContent?.input?.content || "";
+    const filename = toolUseContent?.input?.filename || "";
 
     console.log("Markdown from Anthropic API received", markdown);
+    console.log("Filename from Anthropic API received", filename);
 
-    return NextResponse.json({ markdown });
+    return NextResponse.json({ markdown, filename });
   } catch (error: any) {
     console.error("Anthropic Conversation to Markdown API Error:", error);
     console.error("Error details:", {

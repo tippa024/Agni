@@ -1,5 +1,7 @@
 import { useState, useEffect, useCallback, useRef } from "react";
 import MarkdownRenderer from "../../lib/utils/render";
+import { WriteToContext, ReadAllContextFileNamesOnly, ReadAParticularContextFile } from "../../lib/utils/API/HistoryAPICalls";
+
 
 
 export default function TextInput() {
@@ -8,7 +10,7 @@ export default function TextInput() {
     const [showMarkdown, setShowMarkdown] = useState(false);
     const [showSaveConfirmation, setShowSaveConfirmation] = useState(false);
     const [showContextDropdown, setShowContextDropdown] = useState(false);
-    const [contextFiles, setContextFiles] = useState<{ filename: string; content: string }[]>([]);
+    const [contextFiles, setContextFiles] = useState<string[]>([]);
     const textAreaRef = useRef<HTMLTextAreaElement>(null);
 
 
@@ -63,35 +65,28 @@ export default function TextInput() {
 
     const saveToContext = async () => {
         try {
-            const response = await fetch('/api/History/MarkDown/Save', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify({ content: text }),
-            });
+            const filename = `Context_${new Date()
+                .toLocaleString("en-IN", { timeZone: "Asia/Kolkata" })
+                .replace(/[/:\s]/g, "-")}.md`;
 
-            if (response.ok) {
-                const result = await response.json();
+            const result = await WriteToContext(filename, text);
+
+            if (result && result.success) {
                 console.log(`File saved as ${result.filename} at ${result.path}`);
                 alert(`File saved as ${result.filename} at ${result.path}`);
             } else {
-                const error = await response.text();
-                alert(`Error saving file: ${error}`);
+                alert(`Error saving file: ${result?.error || 'Unknown error'}`);
             }
         } catch (error) {
             console.error('Error saving markdown file:', error);
-            alert('Failed to save file. Check console for details.');
+            alert(`Failed to save file. ${error}. Please check the console for more details.`);
         }
     };
 
     useEffect(() => {
         const fetchContextFiles = async () => {
-            const response = await fetch('/api/History/MarkDown/Read?includeContent=true');
-            const data = await response.json();
-            console.log("data", data);
-            setContextFiles(data.files);
-            console.log("context files", contextFiles);
+            const response = await ReadAllContextFileNamesOnly();
+            setContextFiles(response.files);
         };
         fetchContextFiles();
     }, []);
@@ -126,11 +121,12 @@ export default function TextInput() {
                                         <li
                                             key={index}
                                             className="px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 cursor-pointer"
-                                            onClick={() => {
-                                                setText(file.content);
+                                            onClick={async () => {
+                                                const response = await ReadAParticularContextFile(file);
+                                                setText(response.content);
                                             }}
                                         >
-                                            {file.filename}
+                                            {file}
                                         </li>
                                     ))}
                                 </ul>

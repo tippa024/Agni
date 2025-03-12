@@ -9,7 +9,7 @@ export async function POST(request: NextRequest) {
   try {
     const data = await request.json();
 
-    const { content } = data;
+    const { content, filename } = data;
 
     if (!content) {
       return NextResponse.json(
@@ -23,10 +23,6 @@ export async function POST(request: NextRequest) {
       await fsPromises.mkdir(contextDir, { recursive: true });
     }
 
-    const timestamp = new Date()
-      .toLocaleString("en-IN", { timeZone: "Asia/Kolkata" })
-      .replace(/[/:\s]/g, "-");
-    const filename = `context-${timestamp}.md`;
     const filePath = path.join(contextDir, filename);
 
     await fsPromises.writeFile(filePath, content);
@@ -40,9 +36,6 @@ export async function POST(request: NextRequest) {
     });
   } catch (error) {
     console.error("Error saving markdown:", error);
-    return NextResponse.json(
-      { error: "Failed to save markdown file" },
-      { status: 500 }
-    );
+    return NextResponse.json({ error: error }, { status: 500 });
   }
 }

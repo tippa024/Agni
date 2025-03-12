@@ -14,10 +14,7 @@ export async function handleRawUserInput(
 ) {
   actions.setCurrentProcessingStep("Understanding User Input");
 
-  console.log(
-    "Current line number:",
-    new Error().stack?.split("\n")[1]?.match(/at.*:(\d+)/)?.[1] || "unknown"
-  );
+  //console.log( "Current line number:", new Error().stack?.split("\n")[1]?.trim().split(":").pop() || "unknown");
 
   e.preventDefault(); //still not sure if this is needed, but it's here to be safe
   if (!state.input.trim()) return;
