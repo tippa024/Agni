@@ -14,6 +14,10 @@ const anthropic = new Anthropic({
 });
 
 export async function POST(req: NextRequest) {
+  console.log(
+    "Synthesis Conversation to Markdown using Anthropic API route starting"
+  );
+
   try {
     const body = await req.json();
 
@@ -59,25 +63,52 @@ export async function POST(req: NextRequest) {
       ],
     });
 
-    console.log("Synthesis Conversation API Response", response);
+    console.log(
+      "Synthesis Conversation to Markdown using Anthropic API route response received",
+      response
+    );
 
-    // Extract the tool_use content from the response
     const toolUseContent = response.content.find(
       (item) => item.type === "tool_use"
-    ) as
-      | { type: string; input: { content: string; filename: string } }
-      | undefined;
+    );
 
-    // Get the markdown content from the tool_use input
-    const markdown = toolUseContent?.input?.content || "";
-    const filename = toolUseContent?.input?.filename || "";
+    const textContent = response.content.find((item) => item.type === "text");
 
-    console.log("Markdown from Anthropic API received", markdown);
-    console.log("Filename from Anthropic API received", filename);
+    let markdown = "";
+    let filename = "";
+    let AnthropicResponse = { text: "" };
 
-    return NextResponse.json({ markdown, filename });
+    if (toolUseContent && "input" in toolUseContent) {
+      markdown = (toolUseContent.input as any).content || "";
+      filename = (toolUseContent.input as any).filename || "";
+    } else {
+      console.log("Tool use content not found or has unexpected structure");
+    }
+
+    if (textContent && "text" in textContent) {
+      AnthropicResponse = { text: textContent.text };
+    } else {
+      console.log("Text content not found or has unexpected structure");
+    }
+
+    console.log("Markdown from Anthropic API", markdown);
+    console.log("Filename from Anthropic API", filename);
+    console.log("Anthropic Text Response", AnthropicResponse.text);
+
+    console.log(
+      "Synthesis Conversation to Markdown using Anthropic API route completed"
+    );
+
+    return NextResponse.json({
+      text: AnthropicResponse.text,
+      markdown,
+      filename,
+    });
   } catch (error: any) {
-    console.error("Anthropic Conversation to Markdown API Error:", error);
+    console.error(
+      "Synthesis Conversation to Markdown using Anthropic API route Error:",
+      error
+    );
     console.error("Error details:", {
       name: error.name,
       message: error.message,
@@ -86,7 +117,8 @@ export async function POST(req: NextRequest) {
 
     return NextResponse.json(
       {
-        error: "Anthropic Conversation to Markdown API Error",
+        error:
+          "Synthesis Conversation to Markdown using Anthropic API route Error",
         details: error.message,
         path: req.nextUrl.pathname,
       },

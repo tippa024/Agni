@@ -1,6 +1,8 @@
 import { useState, useEffect, useCallback, useRef } from "react";
 import MarkdownRenderer from "../../lib/utils/render";
-import { WriteToContext, ReadAllContextFileNamesOnly, ReadAParticularContextFile } from "../../lib/utils/API/HistoryAPICalls";
+import { WriteNewToContext } from "../../lib/utils/API/History/Context/WriteANewFile";
+import { ReadAllContextFileNamesOnly } from "../../lib/utils/API/History/Context/ReadAllFileNames";
+import { ReadAParticularContextFile } from "../../lib/utils/API/History/Context/ReadAParticularFileContent";
 
 
 
@@ -69,7 +71,7 @@ export default function TextInput() {
                 .toLocaleString("en-IN", { timeZone: "Asia/Kolkata" })
                 .replace(/[/:\s]/g, "-")}.md`;
 
-            const result = await WriteToContext(filename, text);
+            const result = await WriteNewToContext(filename, text);
 
             if (result && result.success) {
                 console.log(`File saved as ${result.filename} at ${result.path}`);

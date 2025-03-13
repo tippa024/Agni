@@ -12,23 +12,28 @@ export const runtime = "edge";
 export const dynamic = "force-dynamic";
 
 export async function POST(request: NextRequest) {
-  try {
-    const refinedsearchdata = await request.json();
-    //console.log("Received search data:", refinedsearchdata);
+  console.log("OpenPerplex Search API Route - Starting");
 
-    // Process parameters
+  try {
+    const searchdata = await request.json();
+
+    console.log(
+      "OpenPerplex Search API Route - Received search data",
+      searchdata
+    );
+
     const params: SearchParameters = {
-      query: refinedsearchdata.query,
-      return_citations: Boolean(refinedsearchdata.return_citations),
-      return_sources: Boolean(refinedsearchdata.return_sources),
-      search_type: refinedsearchdata.search_type,
-      answer_type: refinedsearchdata.answer_type,
-      response_language: refinedsearchdata.response_language,
-      model: refinedsearchdata.model,
-      location: refinedsearchdata.location,
-      date_context: refinedsearchdata.date_context,
-      return_images: Boolean(refinedsearchdata.return_images),
-      recency_filter: refinedsearchdata.recency_filter,
+      query: searchdata.query,
+      return_citations: Boolean(searchdata.return_citations),
+      return_sources: Boolean(searchdata.return_sources),
+      search_type: searchdata.search_type,
+      answer_type: searchdata.answer_type,
+      response_language: searchdata.response_language,
+      model: searchdata.model,
+      location: searchdata.location,
+      date_context: searchdata.date_context,
+      return_images: Boolean(searchdata.return_images),
+      recency_filter: searchdata.recency_filter,
     };
 
     const queryString = Object.entries(params)
@@ -40,7 +45,10 @@ export async function POST(request: NextRequest) {
       )
       .join("&");
 
-    console.log("Final query string:", queryString);
+    console.log(
+      "OpenPerplex Search API Route - Final query string:",
+      queryString
+    );
 
     const response = await fetch(
       `https://44c57909-d9e2-41cb-9244-9cd4a443cb41.app.bhs.ai.cloud.ovh.net/search?${queryString}`,
@@ -65,6 +73,9 @@ export async function POST(request: NextRequest) {
     }
 
     const data = await response.json();
+
+    console.log("OpenPerplex Search API Route - Completed", data);
+
     return Response.json(data);
   } catch (error: any) {
     console.error("OpenPerplex Search Error:", error);

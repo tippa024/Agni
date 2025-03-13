@@ -31,6 +31,50 @@ export default function Home() {
   });
 
   const [conversationHistory, setConversationHistory] = useState<conversationHistory[]>([]);
+  const [locationOn, setLocationOn] = useState<boolean>(false);
+  const [location, setLocation] = useState<{ latitude: number, longitude: number } | null>(null);
+
+  const getLocation = async (): Promise<{ latitude: number, longitude: number } | null> => {
+    if (navigator.geolocation) {
+      try {
+        const position = await new Promise<GeolocationPosition>((resolve, reject) =>
+          navigator.geolocation.getCurrentPosition(
+            resolve,
+            reject,
+            {
+              enableHighAccuracy: true,
+              timeout: 1000,
+              maximumAge: 0
+            }
+          )
+        );
+
+        const coordinates = {
+          latitude: position.coords.latitude,
+          longitude: position.coords.longitude
+        };
+
+        console.log("User location:", coordinates);
+        setLocation(coordinates);
+        setLocationOn(true);
+        return coordinates;
+      } catch (error) {
+        console.error("Error getting location:", error);
+        setLocation(null);
+        setLocationOn(false);
+        return null;
+      }
+    } else {
+      console.log("Geolocation API not available in this browser");
+      setLocation(null);
+      setLocationOn(false);
+      return null;
+    }
+  };
+
+
+
+
 
   const onSubmit = async (e: React.FormEvent) => {
     await handleRawUserInput(
@@ -42,12 +86,14 @@ export default function Home() {
         currentProcessingStep,
         conversationHistory,
         context,
+        location: location ? location : null,
       },
       {
         setMessages,
         setInput,
         setCurrentProcessingStep,
         setConversationHistory,
+        setLocation,
       }
     );
   };
@@ -63,7 +109,14 @@ export default function Home() {
   return (
     <main className="flex flex-col min-h-screen w-screen bg-white">
       <div className='flex justify-between items-center border'>
-        <div className='flex-1'>
+        <div className='flex-1 flex justify-start'>
+          <button
+            onClick={() => getLocation()}
+            className={`px-3 py-1.5 opacity-20 hover:opacity-80 transition-colors duration-200 text-[#4A4235] font-medium text-sm ${locationOn ? 'opacity-80' : 'opacity-20'}`}>
+            Location
+          </button>
+        </div>
+        <div className='flex'>
         </div>
         <div suppressHydrationWarning className='text-sm text-[#4A4235] text-center flex-1 font-mono opacity-25'>
           {new Date().toLocaleDateString('en-GB')} {new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' })}
@@ -75,6 +128,7 @@ export default function Home() {
             {chatMode === 'chat' ? 'TEXT' : 'CHAT'}
           </button>
         </div>
+
       </div>
       {chatMode === 'chat' ? (
         messages.length === 0 ? (

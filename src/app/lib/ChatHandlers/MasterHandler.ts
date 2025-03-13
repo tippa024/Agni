@@ -1,10 +1,10 @@
 import { search } from "./2.Agents/SearchHandler";
-
 import {
   OpenAIChatResponse,
   AnthropicChatResponse,
 } from "./3.Output/FinalResponseHandler";
 import { ChatState, ChatActions } from "../utils/type";
+import { ReadAllContextFilesNamesAndContent } from "../utils/API/History/Context/ReadAllNamesandContent";
 
 // Main function to handle chat form submissions
 export async function handleRawUserInput(
@@ -68,22 +68,14 @@ export async function handleRawUserInput(
           contextualizedInput = searchdatainfusedquery;
         }
       } catch (error) {
-        console.error(
-          "Error in SearchHandler.ts line:" +
-            new Error().stack?.split("\n")[1]?.match(/\d+/)?.[0] +
-            ", error:" +
-            error
-        );
+        console.error("Error in SearchHandler.ts", error);
       }
     }
 
     if (state.context) {
-      const context = await fetch(
-        "/api/History/MarkDown/Read?includeContent=true"
-      );
-      const contextData = await context.json();
-      console.log(contextData);
-      contextualizedInput += `\n\nContext:\n${contextData.files
+      const context = await ReadAllContextFilesNamesAndContent();
+      console.log(context);
+      contextualizedInput += `\n\nContext:\n${context.files
         .map((file: any) => file.content)
         .join("\n")}`;
     }
@@ -96,6 +88,7 @@ export async function handleRawUserInput(
         timestamp: new Date().toLocaleString("en-IN", {
           timeZone: "Asia/Kolkata",
         }),
+        location: state.location || undefined,
       },
     ]);
 
@@ -137,7 +130,8 @@ export async function handleRawUserInput(
         const finalChatOutput = await AnthropicChatResponse(
           messages,
           actions,
-          state.userPreferences.model[0]
+          state.userPreferences.model[0],
+          state.location || null
         );
         actions.setCurrentProcessingStep("");
         console.log(
@@ -145,10 +139,8 @@ export async function handleRawUserInput(
         );
       } catch (error) {
         console.error(
-          "Error in Anthropic chat response in MasterHandler.ts line:" +
-            new Error().stack?.split("\n")[1]?.match(/\d+/)?.[0] +
-            ", error:" +
-            error
+          "Error in Anthropic chat response in MasterHandler.ts",
+          error
         );
         actions.setCurrentProcessingStep("");
       }
@@ -159,7 +151,8 @@ export async function handleRawUserInput(
         const finalChatOutput = await OpenAIChatResponse(
           messages,
           actions,
-          state.userPreferences.model[0]
+          state.userPreferences.model[0],
+          state.location || null
         );
         actions.setCurrentProcessingStep("");
         console.log(
@@ -167,10 +160,8 @@ export async function handleRawUserInput(
         );
       } catch (error) {
         console.error(
-          "Error in OpenAI chat response in MasterHandler.ts line:" +
-            new Error().stack?.split("\n")[1]?.match(/\d+/)?.[0] +
-            ", error:" +
-            error
+          "Error in OpenAI chat response in MasterHandler.ts",
+          error
         );
         actions.setCurrentProcessingStep("");
       }
@@ -197,19 +188,20 @@ export async function handleRawUserInput(
         timestamp: new Date().toLocaleString("en-IN", {
           timeZone: "Asia/Kolkata",
         }),
+        location: state.location || undefined,
       },
       {
         role: "assistant",
         content:
           "I apologize, but I encountered an error while processing your request. Please try again." +
-          "location: MasterHandler.ts line:" +
-          new Error().stack?.split("\n")[1]?.match(/\d+/)?.[0] +
+          "location: MasterHandler.ts" +
           error,
         timestamp: new Date().toLocaleString("en-IN", {
           timeZone: "Asia/Kolkata",
         }),
         model: state.userPreferences.model[0],
         modelprovider: state.userPreferences.model[1],
+        location: state.location || undefined,
       },
     ]);
   }

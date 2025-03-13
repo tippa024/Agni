@@ -1,13 +1,14 @@
-import {
-  SearchQueryPrompt,
-  contextualisedInputPromptAfterSearch,
-} from "../../utils/promt";
+import { contextualisedInputPromptAfterSearch } from "../../utils/promt";
 import {
   SearchResult,
   SearchParameters,
   ChatActions,
   SearchOutput,
+  conversationHistory,
 } from "../../utils/type";
+
+import { UserQueryRefinementForOpenPerplexSearchUsingOpenAI } from "../../utils/API/Models/Agent/RefineUserQueryForSearch";
+import { OpenPerplexSearch } from "../../utils/API/External/Search/OpenPerplex/OpenPerplexSearch";
 
 const FALLBACK_SEARCH_PARAMS = {
   query: "",
@@ -36,7 +37,7 @@ let searchIO = {
 
 export async function search(
   userMessage: string,
-  chatHistory: { role: string; content: string }[],
+  chatHistory: conversationHistory[],
   actions: ChatActions,
   queryRefinement: boolean,
   queryRefinementModel: string
@@ -44,28 +45,6 @@ export async function search(
   searchIO.initialQuery = userMessage;
   if (queryRefinement) {
     actions.setCurrentProcessingStep("Understanding");
-
-    const refimentmessages = [
-      {
-        role: "system",
-        content: ` ${
-          SearchQueryPrompt.content
-        } Consider the chat history for context: ${JSON.stringify(
-          chatHistory
-        )} `,
-      },
-      { role: "user", content: searchIO.initialQuery },
-    ];
-
-    actions.setConversationHistory((prev) => [
-      ...prev,
-      ...refimentmessages.map((msg) => ({
-        ...msg,
-        timestamp: new Date().toLocaleString("en-IN", {
-          timeZone: "Asia/Kolkata",
-        }),
-      })),
-    ]);
 
     try {
       console.log(
@@ -76,26 +55,28 @@ export async function search(
 
       // const model = await getModel(queryRefinementModel);
 
-      const response = await fetch("/api/Models/OpenAI/SearchQueryRefinement", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          messages: refimentmessages,
-          model: queryRefinementModel,
-        }),
-      });
+      actions.setConversationHistory((prev) => [
+        ...prev,
+        {
+          role: "user",
+          content:
+            "please refine my query " +
+            searchIO.initialQuery +
+            "based on ChatHistory for OpenPerplex Search API",
+          timestamp: new Date().toLocaleString("en-IN", {
+            timeZone: "Asia/Kolkata",
+          }),
+        },
+      ]);
 
-      if (!response.ok) {
-        console.error(
-          "Query Refinement using OpenAI API - Failed",
-          response.statusText
+      const searchParameters =
+        await UserQueryRefinementForOpenPerplexSearchUsingOpenAI(
+          searchIO.initialQuery,
+          queryRefinementModel,
+          chatHistory
         );
-        throw new Error(
-          `Failed to get response from Search Query Refinement: ${response.statusText}`
-        );
-      }
 
-      searchIO.searchParameters = await response.json();
+      searchIO.searchParameters = searchParameters;
 
       console.log("Refined SearchParameters:", searchIO.searchParameters);
 
@@ -130,34 +111,12 @@ export async function search(
   try {
     console.log("OpenPerplex Search API - Starting");
 
-    const response = await fetch(`/api/OpenPerplex/search`, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        "X-API-Key": process.env.OPENPERPLEX_API_KEY || "",
-      },
-      body: JSON.stringify(searchIO.searchParameters),
-    });
+    const response = await OpenPerplexSearch(searchIO.searchParameters);
 
-    if (!response.ok) {
-      console.log("Search failed using OpenPerplex API", response.statusText);
-      throw new Error(`Search failed: ${response.statusText}`);
-    }
+    const searchData = response;
 
-    const searchData = await response.json();
-
-    if (searchData.error) {
-      console.error("OpenPerplex Search API - Failed", searchData.error);
-      throw new Error(searchData.error);
-    }
-
-    actions.setCurrentProcessingStep("Search Completed");
-    console.log("OpenPerplex Search API - Completed");
-    console.log("searchData", searchData);
-
-    searchIO.OpenPerplexSearchOutput.sources = searchData.sources || [];
-    searchIO.OpenPerplexSearchOutput.llm_response =
-      searchData.llm_response || "";
+    searchIO.OpenPerplexSearchOutput.sources = searchData.sources;
+    searchIO.OpenPerplexSearchOutput.llm_response = searchData.llm_response;
 
     actions.setMessages((prev) => {
       const newMessages = [...prev];

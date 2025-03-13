@@ -5,7 +5,8 @@ import { Message, ChatActions } from "../../utils/type";
 export const AnthropicChatResponse = async (
   messages: Message[],
   actions: ChatActions,
-  model: string
+  model: string,
+  location: { latitude: number; longitude: number } | null
 ) => {
   console.log("calling Anthropic API");
   const finalResponse = await fetch("/api/Models/Anthropic/Chat", {
@@ -54,6 +55,7 @@ export const AnthropicChatResponse = async (
         }),
         model: model,
         modelprovider: "Anthropic",
+        location: location || undefined,
       },
     ]);
 
@@ -101,6 +103,7 @@ export const AnthropicChatResponse = async (
         }),
         model: model,
         modelprovider: "Anthropic",
+        location: location || undefined,
       },
     ]);
     console.log("History updated");
@@ -114,8 +117,7 @@ export const AnthropicChatResponse = async (
       const lastMessage = newMessages[newMessages.length - 1];
       if (lastMessage?.role === "assistant") {
         lastMessage.content =
-          " I apologize, but I encountered an error while parsing the Anthropic API response. Please try again. location: finalResponsehandler.ts - AnthropicChatResponse line:" +
-          new Error().stack?.split("\n")[1]?.match(/\d+/)?.[0] +
+          " I apologize, but I encountered an error while parsing the Anthropic API response. Please try again. location: finalResponsehandler.ts - AnthropicChatResponse" +
           streamError;
       }
       return newMessages;
@@ -126,14 +128,14 @@ export const AnthropicChatResponse = async (
       {
         role: "assistant",
         content:
-          " I apologize, but I encountered an error while parsing the Anthropic API response. Please try again. location: finalResponsehandler.ts - AnthropicChatResponse line:" +
-          new Error().stack?.split("\n")[1]?.match(/\d+/)?.[0] +
+          " I apologize, but I encountered an error while parsing the Anthropic API response. Please try again. location: finalResponsehandler.ts - AnthropicChatResponse" +
           streamError,
         timestamp: new Date().toLocaleString("en-IN", {
           timeZone: "Asia/Kolkata",
         }),
         model: model,
         modelprovider: "Anthropic",
+        location: location || undefined,
       },
     ]);
     console.log(
@@ -149,7 +151,8 @@ export const AnthropicChatResponse = async (
 export const OpenAIChatResponse = async (
   messages: Message[],
   actions: ChatActions,
-  model: string
+  model: string,
+  location: { latitude: number; longitude: number } | null
 ) => {
   console.log("calling OpenAI API");
   const finalResponse = await fetch("/api/Models/OpenAI/Chat", {
@@ -191,6 +194,7 @@ export const OpenAIChatResponse = async (
         }),
         model: model,
         modelprovider: "OpenAI",
+        location: location || undefined,
       },
     ]);
 
@@ -250,6 +254,7 @@ export const OpenAIChatResponse = async (
         }),
         model: model,
         modelprovider: "OpenAI",
+        location: location || undefined,
       },
     ]);
     return content;
@@ -264,8 +269,7 @@ export const OpenAIChatResponse = async (
       const lastMessage = newMessages[newMessages.length - 1];
       if (lastMessage?.role === "assistant") {
         lastMessage.content =
-          " I apologize, but I encountered an error while processing your request. Please try again. location: finalResponsehandler.ts - OpenAIChatResponse line:" +
-          new Error().stack?.split("\n")[1]?.match(/\d+/)?.[0] +
+          " I apologize, but I encountered an error while processing your request. Please try again. location: finalResponsehandler.ts - OpenAIChatResponse" +
           streamError;
       }
       return newMessages;
@@ -276,14 +280,14 @@ export const OpenAIChatResponse = async (
       {
         role: "assistant",
         content:
-          " I apologize, but I encountered an error while processing your request. Please try again. location: finalResponsehandler.ts - OpenAIChatResponse line:" +
-          new Error().stack?.split("\n")[1]?.match(/\d+/)?.[0] +
+          " I apologize, but I encountered an error while processing your request. Please try again. location: finalResponsehandler.ts - OpenAIChatResponse" +
           streamError,
         timestamp: new Date().toLocaleString("en-IN", {
           timeZone: "Asia/Kolkata",
         }),
         model: model,
         modelprovider: "OpenAI",
+        location: location || undefined,
       },
     ]);
     throw streamError;

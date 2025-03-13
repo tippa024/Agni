@@ -1,6 +1,5 @@
 import { OpenAI } from "openai";
 import { NextRequest } from "next/server";
-import { searchParametersSchema } from "@/app/lib/utils/promt";
 
 // Create OpenAI client with error handling
 if (!process.env.OPENAI_API_KEY) {
@@ -17,7 +16,8 @@ const openai = new OpenAI({
 
 export async function POST(req: NextRequest) {
   try {
-    const { messages } = await req.json();
+    const { messages, model, response_format, temperature, max_tokens } =
+      await req.json();
 
     console.log("===SearchRefinimentThroughOPENAIAPISTARTING===");
 
@@ -31,15 +31,12 @@ export async function POST(req: NextRequest) {
 
     const response = await openai.chat.completions.create(
       {
-        model: "gpt-4o-mini",
+        model: model,
         messages,
-        response_format: {
-          type: "json_schema",
-          json_schema: searchParametersSchema,
-        },
+        response_format: response_format,
         stream: false,
-        temperature: 0.2,
-        max_tokens: 1000,
+        temperature: temperature,
+        max_tokens: max_tokens,
       },
       {
         signal: AbortSignal.timeout(30000), // 30 second timeout
@@ -47,14 +44,14 @@ export async function POST(req: NextRequest) {
     );
 
     // Get the OpenAI response
-    const generatedText = response.choices[0].message.content;
+    const refinedSearchParameters = response.choices[0].message.content;
 
     // After getting OpenAI response
     console.log("=== OpenAI Raw Response ===");
-    console.log("Generated Text:", generatedText);
+    console.log("Refined Search Parameters:", refinedSearchParameters);
 
     // Return it directly
-    return new Response(generatedText, {
+    return new Response(refinedSearchParameters, {
       status: 200,
       headers: { "Content-Type": "application/json" },
     });

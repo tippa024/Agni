@@ -1,14 +1,31 @@
 import { conversationHistory } from "../../utils/type";
-import {
-  WriteToContext,
-  AddNewMessagesToConversationHistory,
-  ReadConversationHistory,
-} from "../../utils/API/HistoryAPICalls";
-import { SynthesizeConversationToMarkDownusingAnthropic } from "../../utils/API/ModelAPICalls";
+import { WriteNewToContext } from "../../utils/API/History/Context/WriteANewFile";
+import { AddNewMessagesToConversationHistory } from "../../utils/API/History/Conversation/Write";
+import { SynthesizeConversationToMarkDownusingAnthropic } from "../../utils/API/Models/Agent/SynthesizeConversation";
 
 export const ChatToContext = async (
   conversationHistory: conversationHistory[]
 ) => {
+  const userPrompt = `
+   Analyze our conversation to understand why the user engaged in this discussion and what they were trying to achieve. Create a concise markdown summary that captures:
+
+      1. The user's personal connection to this topic (why it matters to them)
+      2. Key facts, preferences, and knowledge the user has demonstrated
+      3. The user's goals, interests, and questions related to this subject
+      4. Any specific insights or conclusions reached during our conversation
+
+      Format the summary with:
+      - A descriptive title that clearly identifies the main topic
+      - Logical section headers that organize the information
+      - The user's intent section (why they care about this topic)
+      - Key aspects of the topic that were discussed
+      - Core lessons or takeaways from the conversation
+      - Any personal reflections or applications mentioned by the user
+
+      This markdown will serve as context for future conversations on similar topics, helping provide continuity and personalization in our interactions.
+      
+      You many not be able to cover all the points, so use your best judgement as best as you can. Even if you think you have way less context than you need, take a stab at it and clarify the lack of context in the markdown. Please revent back in the requested format with a clear title name and markdown content as the two objects.
+   `;
   const messageforAnthropic = [
     ...conversationHistory
       .filter((msg) => msg.role !== "system")
@@ -33,13 +50,7 @@ export const ChatToContext = async (
       }, []),
     {
       role: "user",
-      content: `You seek to understand why the user might have had the conversation and what they might have been trying to achieve. You note the key insights, preferences, and goals of the user. Please analyze our conversation and create a concise markdown summary with the following characteristics:
-      
-      1. Extract only the most important insights, key points, and conclusions
-      2. Organize the content logically with clear section headers. 
-      3. Include a descriptive filename that reflects the main topic of our conversation
-      
-      The markdown should be easy to read, well-structured, and capture the essence of our discussion without unnecessary details.`,
+      content: userPrompt,
     },
   ];
 
@@ -54,29 +65,36 @@ export const ChatToContext = async (
 
     // Step 2: Generate markdown synthesis
     console.log("Synthesizing conversation to markdown...");
-    const synthesisResult =
-      await SynthesizeConversationToMarkDownusingAnthropic(
-        messageforAnthropic,
-        "claude-3-5-sonnet-20240620"
-      ).catch((error) => {
-        console.error("Error synthesizing conversation to markdown:", error);
-        return null;
-      });
+    const context = await SynthesizeConversationToMarkDownusingAnthropic(
+      messageforAnthropic,
+      "claude-3-5-sonnet-20240620"
+    ).catch((error) => {
+      console.error("Error synthesizing conversation to markdown:", error);
+      return null;
+    });
+
+    if (
+      context?.markdown === "Not enough context to synthesize a markdown file"
+    ) {
+      console.log(context.text);
+      return;
+    }
 
     // Step 3: Save markdown to context file if synthesis was successful
-    if (synthesisResult?.markdown && synthesisResult?.filename) {
-      console.log("Saving synthesized markdown as context file...");
-      const filename =
-        `${synthesisResult.filename}.md` ||
-        `Context_${new Date()
-          .toLocaleString("en-IN", { timeZone: "Asia/Kolkata" })
-          .replace(/[/:\s]/g, "-")}.md`;
+    console.log("Saving synthesized markdown as context file...");
 
-      await WriteToContext(filename, synthesisResult.markdown).catch((error) =>
+    if (context && context.filename && context.markdown) {
+      await WriteNewToContext(
+        `${context?.filename}.md`,
+        context?.markdown
+      ).catch((error) =>
         console.error("Error saving markdown as context file:", error)
       );
-
       console.log("Synthesized markdown saved as context file");
+    } else {
+      console.log(
+        "issue with processing context file" + context + "unable to save"
+      );
     }
   } catch (error) {
     console.error(

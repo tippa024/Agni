@@ -21,12 +21,17 @@ export interface UserPreferences {
     | ["deepseek-v3", "DeepSeek"];
 }
 
+export type MessageRole = "user" | "assistant" | "system";
+
 export interface conversationHistory {
-  role: string;
+  id?: string;
+  role: MessageRole;
   content: string;
   timestamp: string;
+  location?: { latitude: number, longitude: number };
   model?: string;
-  modelprovider?: string;
+  provider?: string;
+  context?: string;
 }
 
 export interface SearchResult {
@@ -36,7 +41,7 @@ export interface SearchResult {
 }
 
 export interface Message {
-  role: "user" | "assistant" | "system";
+  role: MessageRole;
   content: string;
   sources?: SearchResult[];
   additionalInfo?: string;
@@ -49,6 +54,7 @@ export interface ChatState {
   currentProcessingStep: string;
   conversationHistory: conversationHistory[];
   context: boolean;
+  location?: { latitude: number, longitude: number } | null;
 }
 
 export interface ChatActions {
@@ -60,6 +66,7 @@ export interface ChatActions {
       | conversationHistory[]
       | ((prev: conversationHistory[]) => conversationHistory[])
   ) => void;
+  setLocation: (location: { latitude: number, longitude: number } | null) => void;
 }
 
 export interface MessageBubbleProps {
