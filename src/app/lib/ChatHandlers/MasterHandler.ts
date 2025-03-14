@@ -1,4 +1,4 @@
-import { search } from "./2.Agents/SearchHandler";
+import { SearchUsingOpenPerplex } from "./2.Agents/SearchHandler";
 import {
   OpenAIChatResponse,
   AnthropicChatResponse,
@@ -12,18 +12,23 @@ export async function handleRawUserInput(
   state: ChatState,
   actions: ChatActions
 ) {
-  actions.setCurrentProcessingStep("Understanding User Input");
+  console.log("Initialising Master Handler", {
+    userQuery: state.input,
+    searchEnabled: state.userPreferences.searchEnabled,
+    model: state.userPreferences.model,
+    context: state.context,
+  });
 
-  //console.log( "Current line number:", new Error().stack?.split("\n")[1]?.trim().split(":").pop() || "unknown");
+  actions.setCurrentProcessingStep("Initializing Main Engine (master handler)");
 
   e.preventDefault(); //still not sure if this is needed, but it's here to be safe
   if (!state.input.trim()) return;
 
-  // Get user message and clear input field
   const userMessage = state.input.trim();
   actions.setInput("");
 
-  // Add user message to chat history
+  actions.setCurrentProcessingStep("Displaying User Message on Screen");
+
   actions.setMessages((prev) => [
     ...prev,
     {
@@ -32,7 +37,22 @@ export async function handleRawUserInput(
     },
   ]);
 
-  //initialise the assistant response
+  actions.setCurrentProcessingStep("Adding User Query to Conversation History");
+
+  actions.setConversationHistory((prev) => [
+    ...prev,
+    {
+      role: "user",
+      content: userMessage,
+      timestamp: new Date().toLocaleString("en-IN", {
+        timeZone: "Asia/Kolkata",
+      }),
+      location: state.location,
+      userPreferences: state.userPreferences,
+    },
+  ]);
+
+  actions.setCurrentProcessingStep("Initialising Assistant Message on Screen");
   actions.setMessages((prev) => [
     ...prev,
     {
@@ -42,22 +62,26 @@ export async function handleRawUserInput(
   ]);
 
   try {
-    console.log("Initialising Master Handler", {
-      userMessage,
-      searchEnabled: state.userPreferences.searchEnabled,
-      model: state.userPreferences.model,
-      context: state.context,
-    });
+    actions.setCurrentProcessingStep(
+      "Initializing main logic of master handler"
+    );
 
     let contextualizedInput = userMessage;
 
-    // If search is enabled, perform search operations
     if (state.userPreferences.searchEnabled) {
+      actions.setCurrentProcessingStep(
+        "User Request for a Search - Initializing search within master handler"
+      );
+
       const queryrefinementneeded = true;
       const queryrefinementmodel = "gpt-4o-mini";
 
       try {
-        const searchdatainfusedquery = await search(
+        actions.setCurrentProcessingStep(
+          " Initiating search using ${state.userPrefences.searchProvider}"
+        );
+
+        const searchdatainfusedquery = await SearchUsingOpenPerplex(
           userMessage,
           state.conversationHistory,
           actions,
@@ -74,7 +98,6 @@ export async function handleRawUserInput(
 
     if (state.context) {
       const context = await ReadAllContextFilesNamesAndContent();
-      console.log(context);
       contextualizedInput += `\n\nContext:\n${context.files
         .map((file: any) => file.content)
         .join("\n")}`;
@@ -88,7 +111,8 @@ export async function handleRawUserInput(
         timestamp: new Date().toLocaleString("en-IN", {
           timeZone: "Asia/Kolkata",
         }),
-        location: state.location || undefined,
+        location: state.location,
+        userPreferences: state.userPreferences,
       },
     ]);
 
@@ -99,7 +123,6 @@ export async function handleRawUserInput(
       ...state.conversationHistory
         .filter((msg) => msg.role !== "system")
         .reduce((acc: any[], msg, index, array) => {
-          // Only push role and content from the message
           acc.push({
             role: msg.role,
             content: msg.content,
@@ -180,6 +203,7 @@ export async function handleRawUserInput(
         searchResults: [],
       },
     ]);
+
     actions.setConversationHistory((prev) => [
       ...prev,
       {
@@ -188,20 +212,18 @@ export async function handleRawUserInput(
         timestamp: new Date().toLocaleString("en-IN", {
           timeZone: "Asia/Kolkata",
         }),
-        location: state.location || undefined,
+        location: state.location,
+        userPreferences: state.userPreferences,
       },
       {
         role: "assistant",
         content:
-          "I apologize, but I encountered an error while processing your request. Please try again." +
-          "location: MasterHandler.ts" +
-          error,
+          "I apologize, but I encountered an error while processing your request. Please try again.",
         timestamp: new Date().toLocaleString("en-IN", {
           timeZone: "Asia/Kolkata",
         }),
         model: state.userPreferences.model[0],
-        modelprovider: state.userPreferences.model[1],
-        location: state.location || undefined,
+        modelProvider: state.userPreferences.model[1],
       },
     ]);
   }

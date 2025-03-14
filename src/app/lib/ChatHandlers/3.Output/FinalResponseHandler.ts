@@ -54,7 +54,7 @@ export const AnthropicChatResponse = async (
           timeZone: "Asia/Kolkata",
         }),
         model: model,
-        modelprovider: "Anthropic",
+        modelProvider: "Anthropic",
         location: location || undefined,
       },
     ]);
@@ -102,7 +102,7 @@ export const AnthropicChatResponse = async (
           timeZone: "Asia/Kolkata",
         }),
         model: model,
-        modelprovider: "Anthropic",
+        modelProvider: "Anthropic",
         location: location || undefined,
       },
     ]);
@@ -134,7 +134,7 @@ export const AnthropicChatResponse = async (
           timeZone: "Asia/Kolkata",
         }),
         model: model,
-        modelprovider: "Anthropic",
+        modelProvider: "Anthropic",
         location: location || undefined,
       },
     ]);
@@ -193,8 +193,7 @@ export const OpenAIChatResponse = async (
           timeZone: "Asia/Kolkata",
         }),
         model: model,
-        modelprovider: "OpenAI",
-        location: location || undefined,
+        modelProvider: "OpenAI",
       },
     ]);
 
@@ -253,8 +252,7 @@ export const OpenAIChatResponse = async (
           timeZone: "Asia/Kolkata",
         }),
         model: model,
-        modelprovider: "OpenAI",
-        location: location || undefined,
+        modelProvider: "OpenAI",
       },
     ]);
     return content;
@@ -286,8 +284,7 @@ export const OpenAIChatResponse = async (
           timeZone: "Asia/Kolkata",
         }),
         model: model,
-        modelprovider: "OpenAI",
-        location: location || undefined,
+        modelProvider: "OpenAI",
       },
     ]);
     throw streamError;

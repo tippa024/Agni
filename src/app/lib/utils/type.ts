@@ -9,30 +9,51 @@ export interface ChatInputProps {
   setUserPreferences: Dispatch<SetStateAction<UserPreferences>>;
 }
 
-export interface UserPreferences {
-  searchEnabled: boolean;
-  model:
-    | ["gpt-4o-mini", "OpenAI"]
-    | ["claude-3-5-haiku-20241022", "Anthropic"]
-    | ["gpt-4o", "OpenAI"]
-    | ["claude-3-5-sonnet-20241022", "Anthropic"]
-    | ["o3-mini", "OpenAI"]
-    | ["deepseek-r1", "DeepSeek"]
-    | ["deepseek-v3", "DeepSeek"];
-}
+export type UserPreferences =
+  | {
+      searchEnabled: true;
+      searchProvider: "OpenPerplex";
+      model:
+        | ["gpt-4o-mini", "OpenAI"]
+        | ["claude-3-5-haiku-20241022", "Anthropic"]
+        | ["gpt-4o", "OpenAI"]
+        | ["claude-3-5-sonnet-20241022", "Anthropic"];
+    }
+  | {
+      searchEnabled: false;
+      searchProvider?: never;
+      model:
+        | ["gpt-4o-mini", "OpenAI"]
+        | ["claude-3-5-haiku-20241022", "Anthropic"]
+        | ["gpt-4o", "OpenAI"]
+        | ["claude-3-5-sonnet-20241022", "Anthropic"];
+    };
 
-export type MessageRole = "user" | "assistant" | "system";
-
-export interface conversationHistory {
-  id?: string;
-  role: MessageRole;
-  content: string;
-  timestamp: string;
-  location?: { latitude: number, longitude: number };
-  model?: string;
-  provider?: string;
-  context?: string;
-}
+export type conversationHistory =
+  | {
+      role: "system";
+      content: string;
+      timestamp: string;
+    }
+  | {
+      role: "user";
+      content: string;
+      timestamp: string;
+      location: { latitude: number; longitude: number };
+      userPreferences: UserPreferences;
+    }
+  | {
+      role: "assistant";
+      content: string;
+      model: string;
+      modelProvider: string;
+      timestamp: string;
+    }
+  | {
+      role: "developer";
+      content: string;
+      timestamp: string;
+    };
 
 export interface SearchResult {
   title: string;
@@ -41,7 +62,7 @@ export interface SearchResult {
 }
 
 export interface Message {
-  role: MessageRole;
+  role: "user" | "assistant";
   content: string;
   sources?: SearchResult[];
   additionalInfo?: string;
@@ -54,7 +75,7 @@ export interface ChatState {
   currentProcessingStep: string;
   conversationHistory: conversationHistory[];
   context: boolean;
-  location?: { latitude: number, longitude: number } | null;
+  location: { latitude: number; longitude: number };
 }
 
 export interface ChatActions {
@@ -66,7 +87,9 @@ export interface ChatActions {
       | conversationHistory[]
       | ((prev: conversationHistory[]) => conversationHistory[])
   ) => void;
-  setLocation: (location: { latitude: number, longitude: number } | null) => void;
+  setLocation: (
+    location: { latitude: number; longitude: number } | null
+  ) => void;
 }
 
 export interface MessageBubbleProps {

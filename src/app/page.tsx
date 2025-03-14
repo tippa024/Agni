@@ -86,7 +86,7 @@ export default function Home() {
         currentProcessingStep,
         conversationHistory,
         context,
-        location: location ? location : null,
+        location: location ? location : {latitude: 0, longitude:0},
       },
       {
         setMessages,

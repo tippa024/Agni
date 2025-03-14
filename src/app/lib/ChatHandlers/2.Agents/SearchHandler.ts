@@ -35,7 +35,7 @@ let searchIO = {
   } as SearchOutput,
 };
 
-export async function search(
+export async function SearchUsingOpenPerplex(
   userMessage: string,
   chatHistory: conversationHistory[],
   actions: ChatActions,
@@ -54,20 +54,6 @@ export async function search(
       );
 
       // const model = await getModel(queryRefinementModel);
-
-      actions.setConversationHistory((prev) => [
-        ...prev,
-        {
-          role: "user",
-          content:
-            "please refine my query " +
-            searchIO.initialQuery +
-            "based on ChatHistory for OpenPerplex Search API",
-          timestamp: new Date().toLocaleString("en-IN", {
-            timeZone: "Asia/Kolkata",
-          }),
-        },
-      ]);
 
       const searchParameters =
         await UserQueryRefinementForOpenPerplexSearchUsingOpenAI(
@@ -137,27 +123,6 @@ export async function search(
       {
         role: "assistant",
         content: "",
-      },
-    ]);
-
-    actions.setConversationHistory((prev) => [
-      ...prev,
-      {
-        role: "assistant",
-        content:
-          "I have refined your initial query (" +
-          searchIO.initialQuery +
-          ") to " +
-          searchIO.searchParameters.query +
-          " and the search results from openperplex API are as follows: " +
-          JSON.stringify(searchIO.OpenPerplexSearchOutput.sources) +
-          " and the extracted content from openperplex API is " +
-          searchIO.OpenPerplexSearchOutput.llm_response,
-        timestamp: new Date().toLocaleString("en-IN", {
-          timeZone: "Asia/Kolkata",
-        }),
-        model: queryRefinementModel,
-        modelprovider: "OpenPerplex + OpenAI",
       },
     ]);
 
