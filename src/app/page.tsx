@@ -24,7 +24,7 @@ export default function Home() {
   const [messages, setMessages] = useState<Message[]>([]);
   const [currentProcessingStep, setCurrentProcessingStep] = useState<string>('');
 
-  // Group user preferences into a single object
+
   const [userPreferences, setUserPreferences] = useState<UserPreferences>({
     searchEnabled: false,
     model: ["gpt-4o-mini", "OpenAI"] as ["gpt-4o-mini", "OpenAI"] | ["claude-3-5-haiku-20241022", "Anthropic"] | ["claude-3-5-sonnet-20241022", "Anthropic"],
@@ -48,7 +48,6 @@ export default function Home() {
             }
           )
         );
-
         const coordinates = {
           latitude: position.coords.latitude,
           longitude: position.coords.longitude
@@ -86,7 +85,7 @@ export default function Home() {
         currentProcessingStep,
         conversationHistory,
         context,
-        location: location ? location : {latitude: 0, longitude:0},
+        location: location ? location : { latitude: 0, longitude: 0 },
       },
       {
         setMessages,

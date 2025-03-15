@@ -1,12 +1,22 @@
-import { SearchUsingOpenPerplex } from "./2.Agents/SearchHandler";
+import { ChatState, ChatActions } from "../utils/type";
+import { contextualisedInputPromptAfterSearch } from "../utils/promt";
+
+import { SetMessage } from "./Messages/Set";
+import { setConversationHistory } from "./ConversationHistory/Set";
+import { StreamlineConversationForAPI } from "./Models/StreamlineConversationforAPI";
+
+import { SearchUsingOpenPerplex } from "./2.Agents/Search/OpenPerplex/SearchHandler";
 import {
   OpenAIChatResponse,
   AnthropicChatResponse,
 } from "./3.Output/FinalResponseHandler";
-import { ChatState, ChatActions } from "../utils/type";
+
+import { getModelStream } from "./Models/getModelStream";
+
 import { ReadAllContextFilesNamesAndContent } from "../utils/API/History/Context/ReadAllNamesandContent";
 
-// Main function to handle chat form submissions
+import { set } from "zod";
+
 export async function handleRawUserInput(
   e: React.FormEvent,
   state: ChatState,
@@ -19,47 +29,24 @@ export async function handleRawUserInput(
     context: state.context,
   });
 
-  actions.setCurrentProcessingStep("Initializing Main Engine (master handler)");
+  actions.setCurrentProcessingStep("We are going for lift off");
 
-  e.preventDefault(); //still not sure if this is needed, but it's here to be safe
+  e.preventDefault(); //still not sure if this is needed, but it's here - to be safe
   if (!state.input.trim()) return;
 
   const userMessage = state.input.trim();
   actions.setInput("");
 
-  actions.setCurrentProcessingStep("Displaying User Message on Screen");
+  SetMessage.NewRoleAndContent("user", userMessage, actions.setMessages);
 
-  actions.setMessages((prev) => [
-    ...prev,
-    {
-      role: "user",
-      content: userMessage,
-    },
-  ]);
+  setConversationHistory.AddUserMessage(
+    userMessage,
+    state.location,
+    state.userPreferences,
+    actions.setConversationHistory
+  );
 
-  actions.setCurrentProcessingStep("Adding User Query to Conversation History");
-
-  actions.setConversationHistory((prev) => [
-    ...prev,
-    {
-      role: "user",
-      content: userMessage,
-      timestamp: new Date().toLocaleString("en-IN", {
-        timeZone: "Asia/Kolkata",
-      }),
-      location: state.location,
-      userPreferences: state.userPreferences,
-    },
-  ]);
-
-  actions.setCurrentProcessingStep("Initialising Assistant Message on Screen");
-  actions.setMessages((prev) => [
-    ...prev,
-    {
-      role: "assistant",
-      content: "",
-    },
-  ]);
+  SetMessage.InitialiseNewAssistant(actions.setMessages);
 
   try {
     actions.setCurrentProcessingStep(
@@ -73,23 +60,32 @@ export async function handleRawUserInput(
         "User Request for a Search - Initializing search within master handler"
       );
 
+      //hardcoded for now
       const queryrefinementneeded = true;
       const queryrefinementmodel = "gpt-4o-mini";
 
       try {
         actions.setCurrentProcessingStep(
-          " Initiating search using ${state.userPrefences.searchProvider}"
+          "Initiating search using " + state.userPreferences.searchProvider
         );
 
-        const searchdatainfusedquery = await SearchUsingOpenPerplex(
+        const searchData = await SearchUsingOpenPerplex(
           userMessage,
           state.conversationHistory,
-          actions,
+          actions.setCurrentProcessingStep,
           queryrefinementneeded,
           queryrefinementmodel
         );
-        if (searchdatainfusedquery) {
-          contextualizedInput = searchdatainfusedquery;
+        if (searchData) {
+          const { sources, contextMessage } = searchData;
+
+          SetMessage.SourcesToCurrent(sources, actions.setMessages);
+
+          SetMessage.InitialiseNewAssistant(actions.setMessages);
+
+          contextualizedInput = `${contextualisedInputPromptAfterSearch} users initial question: "${userMessage}". Search Results: ${JSON.stringify(
+            sources
+          )}Extracted Content: ${contextMessage}`;
         }
       } catch (error) {
         console.error("Error in SearchHandler.ts", error);
@@ -98,48 +94,15 @@ export async function handleRawUserInput(
 
     if (state.context) {
       const context = await ReadAllContextFilesNamesAndContent();
-      contextualizedInput += `\n\nContext:\n${context.files
+      contextualizedInput += `\n\nContext for your reference during the conversation:\n${context.files
         .map((file: any) => file.content)
         .join("\n")}`;
     }
 
-    actions.setConversationHistory((prev) => [
-      ...prev,
-      {
-        role: "user",
-        content: contextualizedInput,
-        timestamp: new Date().toLocaleString("en-IN", {
-          timeZone: "Asia/Kolkata",
-        }),
-        location: state.location,
-        userPreferences: state.userPreferences,
-      },
-    ]);
+    actions.setCurrentProcessingStep("Take Off");
 
-    actions.setCurrentProcessingStep("Final Response");
-
-    // Prepare messages for the API call
-    const messages = [
-      ...state.conversationHistory
-        .filter((msg) => msg.role !== "system")
-        .reduce((acc: any[], msg, index, array) => {
-          acc.push({
-            role: msg.role,
-            content: msg.content,
-          });
-          if (
-            msg.role === "user" &&
-            index < array.length - 1 &&
-            array[index + 1].role !== "assistant"
-          ) {
-            acc.push({
-              role: "assistant",
-              content:
-                "Acknowledged, but there was an issue processing your request. Please try again.",
-            });
-          }
-          return acc;
-        }, []),
+    const messagesForModel = [
+      ...StreamlineConversationForAPI(state.conversationHistory),
       { role: "user", content: contextualizedInput },
     ];
 
@@ -148,17 +111,50 @@ export async function handleRawUserInput(
       state.userPreferences.model[0]
     );
 
+    try {
+      let content = "";
+      const data = await getModelStream(state.userPreferences.model[1], {
+        messages: messagesForModel,
+        model: state.userPreferences.model[0],
+        systemMessage: "You are a helpful assistant",
+      });
+      for await (const chunk of data.stream()) {
+        content += chunk;
+        SetMessage.UpdateAssistantContent(content, actions.setMessages);
+      }
+      actions.setCurrentProcessingStep("");
+      setConversationHistory.AddAssistantMessage(
+        content,
+        state.userPreferences.model[0],
+        state.userPreferences.model[1],
+        actions.setConversationHistory
+      );
+    } catch (error) {
+      console.error("Error in Model Response:", error);
+      actions.setCurrentProcessingStep("");
+    }
+
     if (state.userPreferences.model[1] === "Anthropic") {
+      {
+        /*
+      let content = "";
+      
       try {
-        const finalChatOutput = await AnthropicChatResponse(
-          messages,
-          actions,
-          state.userPreferences.model[0],
-          state.location || null
+        const trial = await StreamingChatUsingAnthropicAPICall(
+          "You are a helpful assistant",
+          messagesForModel,
+          state.userPreferences.model[0]
         );
+        for await (const chunk of trial.stream()) {
+          content += chunk;
+          SetMessage.UpdateAssistantContent(content, actions.setMessages);
+        } //initialising
         actions.setCurrentProcessingStep("");
-        console.log(
-          "Anthropic Chat API Response completed - Master Handler is retiring"
+        setConversationHistory.AddAssistantMessage(
+          content,
+          state.userPreferences.model[0],
+          state.userPreferences.model[1],
+          actions.setConversationHistory
         );
       } catch (error) {
         console.error(
@@ -166,13 +162,53 @@ export async function handleRawUserInput(
           error
         );
         actions.setCurrentProcessingStep("");
+    }
+    */
+      }
+      {
+        /*
+
+
+      try {
+        const finalChatOutput = await AnthropicChatResponse(
+          messagesForModel,
+          actions,
+          state.userPreferences.model[0],
+          state.location || null
+        );
+
+        setConversationHistory.AddAssistantMessage(
+          finalChatOutput,
+          state.userPreferences.model[0],
+          state.userPreferences.model[1],
+          actions.setConversationHistory
+        );
+
+        actions.setCurrentProcessingStep("");
+      } catch (error) {
+        SetMessage.UpdateAssistantContent(
+          "I apologize, but I encountered an error while processing your request. Please try again." +
+            error,
+          actions.setMessages
+        );
+
+        console.error(
+          "Error in Anthropic chat response in MasterHandler.ts",
+          error
+        );
+        actions.setCurrentProcessingStep("");
+        }
+        */
       }
     }
+
+    {
+      /*
 
     if (state.userPreferences.model[1] === "OpenAI") {
       try {
         const finalChatOutput = await OpenAIChatResponse(
-          messages,
+          messagesForModel,
           actions,
           state.userPreferences.model[0],
           state.location || null
@@ -189,42 +225,23 @@ export async function handleRawUserInput(
         actions.setCurrentProcessingStep("");
       }
     }
+    */
+    }
   } catch (error) {
     console.error("Chat Submit Handler - Error:", error);
     actions.setCurrentProcessingStep("");
-    actions.setMessages((prev) => [
-      ...prev,
-      {
-        role: "assistant",
-        content:
-          "I apologize, but I encountered an error while processing your request. Please try again." +
-          "location: MasterHandler.ts" +
-          error,
-        searchResults: [],
-      },
-    ]);
+    SetMessage.NewRoleAndContent(
+      "assistant",
+      "I apologize, but I encountered an error while processing your request. Please try again." +
+        error,
+      actions.setMessages
+    );
 
-    actions.setConversationHistory((prev) => [
-      ...prev,
-      {
-        role: "user",
-        content: userMessage,
-        timestamp: new Date().toLocaleString("en-IN", {
-          timeZone: "Asia/Kolkata",
-        }),
-        location: state.location,
-        userPreferences: state.userPreferences,
-      },
-      {
-        role: "assistant",
-        content:
-          "I apologize, but I encountered an error while processing your request. Please try again.",
-        timestamp: new Date().toLocaleString("en-IN", {
-          timeZone: "Asia/Kolkata",
-        }),
-        model: state.userPreferences.model[0],
-        modelProvider: state.userPreferences.model[1],
-      },
-    ]);
+    setConversationHistory.AddAssistantMessage(
+      "I apologize, but I encountered an error while processing your request. Please try again.",
+      state.userPreferences.model[0],
+      state.userPreferences.model[1],
+      actions.setConversationHistory
+    );
   }
 }

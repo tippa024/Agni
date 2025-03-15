@@ -1,14 +1,13 @@
-import { contextualisedInputPromptAfterSearch } from "../../utils/promt";
 import {
   SearchResult,
   SearchParameters,
   ChatActions,
   SearchOutput,
   conversationHistory,
-} from "../../utils/type";
+} from "../../../../utils/type";
 
-import { UserQueryRefinementForOpenPerplexSearchUsingOpenAI } from "../../utils/API/Models/Agent/RefineUserQueryForSearch";
-import { OpenPerplexSearch } from "../../utils/API/External/Search/OpenPerplex/OpenPerplexSearch";
+import { UserQueryRefinementForOpenPerplexSearchUsingOpenAI } from "../../../../utils/API/Models/Agent/RefineUserQueryForSearch";
+import { OpenPerplexSearch } from "../../../../utils/API/External/Search/OpenPerplex/OpenPerplexSearch";
 
 const FALLBACK_SEARCH_PARAMS = {
   query: "",
@@ -38,22 +37,20 @@ let searchIO = {
 export async function SearchUsingOpenPerplex(
   userMessage: string,
   chatHistory: conversationHistory[],
-  actions: ChatActions,
+  setCurrentProcessingStep: ChatActions["setCurrentProcessingStep"],
   queryRefinement: boolean,
   queryRefinementModel: string
 ) {
   searchIO.initialQuery = userMessage;
   if (queryRefinement) {
-    actions.setCurrentProcessingStep("Understanding");
+    setCurrentProcessingStep("Refining");
 
     try {
       console.log(
-        "Search Query Refinement using OpenAI API using model " +
+        "Search Query Refinement using OpenAI API using " +
           queryRefinementModel +
           " - Starting"
       );
-
-      // const model = await getModel(queryRefinementModel);
 
       const searchParameters =
         await UserQueryRefinementForOpenPerplexSearchUsingOpenAI(
@@ -66,8 +63,6 @@ export async function SearchUsingOpenPerplex(
 
       console.log("Refined SearchParameters:", searchIO.searchParameters);
 
-      actions.setCurrentProcessingStep("Intializing Search");
-
       console.log("Search Query Refinement using OpenAI API - Completed");
     } catch (error) {
       console.error(
@@ -77,7 +72,6 @@ export async function SearchUsingOpenPerplex(
           error
       );
 
-      actions.setCurrentProcessingStep("Intializing Search");
       console.log("Search Query Refinement using OpenAI API - Failed");
 
       // Return fallback data with the current user message and timestamp
@@ -92,49 +86,19 @@ export async function SearchUsingOpenPerplex(
     }
   }
 
-  actions.setCurrentProcessingStep("Searching");
+  setCurrentProcessingStep("Searching");
 
   try {
     console.log("OpenPerplex Search API - Starting");
 
     const response = await OpenPerplexSearch(searchIO.searchParameters);
 
-    const searchData = response;
+    const { sources, llm_response } = response;
 
-    searchIO.OpenPerplexSearchOutput.sources = searchData.sources;
-    searchIO.OpenPerplexSearchOutput.llm_response = searchData.llm_response;
-
-    actions.setMessages((prev) => {
-      const newMessages = [...prev];
-      const lastMessage = newMessages[newMessages.length - 1];
-      if (lastMessage && lastMessage.role === "assistant") {
-        lastMessage.content = searchIO.OpenPerplexSearchOutput.llm_response;
-        if (searchIO.OpenPerplexSearchOutput.sources.length > 0) {
-          lastMessage.sources = searchIO.OpenPerplexSearchOutput.sources;
-        } else {
-          lastMessage.sources = [];
-        }
-      }
-      return newMessages;
-    });
-
-    actions.setMessages((prev) => [
-      ...prev,
-      {
-        role: "assistant",
-        content: "",
-      },
-    ]);
-
-    let contextualizedInput = `${contextualisedInputPromptAfterSearch} 
-    users Initial Question: "${searchIO.initialQuery}". 
-    Search Results: ${JSON.stringify(searchIO.OpenPerplexSearchOutput.sources)}
-    Extracted Content: ${searchIO.OpenPerplexSearchOutput.llm_response}`;
-
-    return contextualizedInput;
+    return { sources, contextMessage: llm_response };
   } catch (error) {
     console.error("Search failed:", error);
-    actions.setCurrentProcessingStep("Search failed");
+    setCurrentProcessingStep("Search failed");
     return null;
   }
 }
