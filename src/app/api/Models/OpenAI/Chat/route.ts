@@ -19,9 +19,10 @@ export async function POST(req: NextRequest) {
     return new Response("OpenAI API key is not set", { status: 500 });
   }
 
+  console.log("OpenAI API route Starting");
+
   try {
     const { messages, model } = await req.json();
-    console.log("===ChatOpenAIAPIStarting===");
 
     if (!messages || !Array.isArray(messages)) {
       return new Response("Messages are required", { status: 400 });
@@ -43,11 +44,12 @@ export async function POST(req: NextRequest) {
         for await (const chunk of response) {
           const text = chunk.choices[0]?.delta?.content || "";
           controller.enqueue(encoder.encode(text));
-          console.log("OpenAI API Chunk:", text);
         }
         controller.close();
       },
     });
+
+    console.log("OpenAI API route: returning stream");
 
     return new Response(stream, {
       headers: {

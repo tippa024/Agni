@@ -27,7 +27,7 @@
     "**/*.tsx",
     "next-env.d.ts",
     ".next/types/**/*.ts",
-    "src/app/lib/utils/API/History/Context/ReadAParticularFileContent.ts"
+    "src/app/lib/utils/APICalls/History/Context/ReadAParticularFileContent.ts"
   ],
   "exclude": ["node_modules", ".next/types/**/*.ts"]
 }

@@ -18,7 +18,7 @@ export async function POST(req: NextRequest) {
 
   try {
     const { messages, model, systemMessage } = await req.json();
-    console.log(" Anthropic API Starting with messages");
+    console.log(" Anthropic API route Starting");
 
     if (!messages || !Array.isArray(messages)) {
       return new Response("Messages are required", { status: 400 });
@@ -39,11 +39,12 @@ export async function POST(req: NextRequest) {
         for await (const chunk of response) {
           const text = chunk.delta?.text || "";
           controller.enqueue(encoder.encode(text));
-          console.log("Anthropic Chunk", text);
         }
         controller.close();
       },
     });
+
+    console.log("Anthropic API route: returning stream");
 
     return new Response(stream, {
       headers: {

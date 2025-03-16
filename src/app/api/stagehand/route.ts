@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { main } from "@/app/lib/ChatHandlers/2.Agents/TwitterHandler";
+import { main } from "@/app/lib/handlers/2.Agents/TwitterHandler";
 
 export async function POST() {
   try {

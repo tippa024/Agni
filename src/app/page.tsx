@@ -2,12 +2,12 @@
 
 import { useState, useRef, useEffect } from 'react';
 import { Source_Serif_4 } from 'next/font/google';
-import { MessageBubble } from "./components/MessageBubble";
-import { UserInput } from "./components/ChatInput";
+import { MessageBubble } from "./components/MessageBubble/MessageBubble";
+import { UserInput } from "./components/ChatInput/ChatInput";
 import TextInput from "./components/TextInput/TextInput";
-import { handleRawUserInput } from "./lib/ChatHandlers/MasterHandler";
-import { Message, UserPreferences, conversationHistory } from "./lib/utils/type";
-import { ChatToContext } from "./lib/ChatHandlers/2.Agents/ChatSessionToMarkDown";
+import { handleRawUserInput } from "./lib/handlers/Chat/1Master/chatmaster";
+import { Message, UserPreferences, conversationHistory } from "./lib/utils/Chat/prompt&type";
+import { ChatToContext } from "./lib/handlers/Chat/Agents/Context/chatSessionToMarkDown";
 
 
 
@@ -127,7 +127,6 @@ export default function Home() {
             {chatMode === 'chat' ? 'TEXT' : 'CHAT'}
           </button>
         </div>
-
       </div>
       {chatMode === 'chat' ? (
         messages.length === 0 ? (

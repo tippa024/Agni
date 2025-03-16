@@ -1,8 +1,8 @@
 import { useState, useEffect, useCallback, useRef } from "react";
-import MarkdownRenderer from "../../lib/utils/render";
-import { WriteNewToContext } from "../../lib/utils/API/History/Context/WriteANewFile";
-import { ReadAllContextFileNamesOnly } from "../../lib/utils/API/History/Context/ReadAllFileNames";
-import { ReadAParticularContextFile } from "../../lib/utils/API/History/Context/ReadAParticularFileContent";
+import MarkdownRenderer from "../render";
+import { WriteNewToContext } from "../../lib/utils/APICalls/History/Context/WriteANewFile";
+import { ReadAllContextFileNamesOnly } from "../../lib/utils/APICalls/History/Context/ReadAllFileNames";
+import { ReadAParticularContextFile } from "../../lib/utils/APICalls/History/Context/ReadAParticularFileContent";
 
 
 
