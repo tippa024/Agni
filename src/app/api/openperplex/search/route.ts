@@ -1,5 +1,5 @@
 import { NextRequest } from "next/server";
-import { SearchParameters } from "@/app/lib/utils/type";
+import { OpenPerplexSearchParameters } from "@/app/lib/utils/OpenPerplex/Search/prompt&type";
 
 // Validate API key at startup
 const apiKey = process.env.OPENPERPLEX_API_KEY;
@@ -17,23 +17,24 @@ export async function POST(request: NextRequest) {
   try {
     const searchdata = await request.json();
 
-    console.log(
-      "OpenPerplex Search API Route - Received search data",
-      searchdata
-    );
+    console.log("OpenPerplex Search API Route - Received search data");
 
-    const params: SearchParameters = {
-      query: searchdata.query,
-      return_citations: Boolean(searchdata.return_citations),
-      return_sources: Boolean(searchdata.return_sources),
-      search_type: searchdata.search_type,
-      answer_type: searchdata.answer_type,
-      response_language: searchdata.response_language,
-      model: searchdata.model,
-      location: searchdata.location,
-      date_context: searchdata.date_context,
-      return_images: Boolean(searchdata.return_images),
-      recency_filter: searchdata.recency_filter,
+    const parsedSearchdata = JSON.parse(searchdata);
+
+    console.log("OpenPerplex Search API Route - Parsed search data");
+
+    const params: OpenPerplexSearchParameters = {
+      query: parsedSearchdata.query,
+      return_citations: Boolean(parsedSearchdata.return_citations),
+      return_sources: Boolean(parsedSearchdata.return_sources),
+      search_type: parsedSearchdata.search_type,
+      answer_type: parsedSearchdata.answer_type,
+      response_language: parsedSearchdata.response_language,
+      model: parsedSearchdata.model,
+      location: parsedSearchdata.location,
+      date_context: parsedSearchdata.date_context,
+      return_images: Boolean(parsedSearchdata.return_images),
+      recency_filter: parsedSearchdata.recency_filter,
     };
 
     const queryString = Object.entries(params)
@@ -74,7 +75,7 @@ export async function POST(request: NextRequest) {
 
     const data = await response.json();
 
-    console.log("OpenPerplex Search API Route - Completed", data);
+    console.log("OpenPerplex Search API Route - Completed");
 
     return Response.json(data);
   } catch (error: any) {

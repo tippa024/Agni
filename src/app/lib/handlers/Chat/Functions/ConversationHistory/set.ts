@@ -1,4 +1,7 @@
-import { conversationHistory, UserPreferences } from "../../../utils/type";
+import {
+  conversationHistory,
+  UserPreferences,
+} from "../../../../utils/Chat/prompt&type";
 
 export const setConversationHistory = {
   AddSystemMessage: function (

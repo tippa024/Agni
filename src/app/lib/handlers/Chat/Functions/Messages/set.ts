@@ -1,4 +1,4 @@
-import { ChatActions, SearchResult } from "../../../utils/type";
+import { ChatActions, SearchResult } from "../../../../utils/Chat/prompt&type";
 
 export const setMessage = {
   InitialiseNewAssistant: function (setMessages: ChatActions["setMessages"]) {

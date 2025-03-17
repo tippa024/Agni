@@ -19,15 +19,11 @@ export async function POST(req: NextRequest) {
     const { messages, model, response_format, temperature, max_tokens } =
       await req.json();
 
-    console.log("===SearchRefinimentThroughOPENAIAPISTARTING===");
+    console.log("Search Query Refinement Through OpenAI API Route Started");
 
     if (!messages || !Array.isArray(messages)) {
       return new Response("Messages are required", { status: 400 });
     }
-
-    // Before OpenAI call
-    console.log("=== OpenAI Refinement Request ===");
-    console.log("Input Messages:", messages);
 
     const response = await openai.chat.completions.create(
       {
@@ -39,24 +35,20 @@ export async function POST(req: NextRequest) {
         max_tokens: max_tokens,
       },
       {
-        signal: AbortSignal.timeout(30000), // 30 second timeout
+        signal: AbortSignal.timeout(30000),
       }
     );
 
-    // Get the OpenAI response
     const refinedSearchParameters = response.choices[0].message.content;
 
-    // After getting OpenAI response
-    console.log("=== OpenAI Raw Response ===");
-    console.log("Refined Search Parameters:", refinedSearchParameters);
+    console.log("Search Query Refinement Through OpenAI API Route Finished");
 
-    // Return it directly
-    return new Response(refinedSearchParameters, {
-      status: 200,
-      headers: { "Content-Type": "application/json" },
-    });
+    return new Response(JSON.stringify(refinedSearchParameters));
   } catch (error: any) {
-    console.error("Chat API Error:", error);
+    console.error(
+      "Search Query Refinement Through OpenAI API Route Error:",
+      error
+    );
     return new Response(error.message || "An error occurred", {
       status: error.status || 500,
     });

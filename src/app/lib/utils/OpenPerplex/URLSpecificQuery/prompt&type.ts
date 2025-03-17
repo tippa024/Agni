@@ -1,4 +1,4 @@
-export interface OpenPerplexQueryFromURLSchemaFormat {
+export interface OpenPerplexQueryFromURLSchemaFormatForOpenAI {
   name: string;
   schema: {
     type: string;
@@ -43,7 +43,7 @@ export interface URLspecificQueryOutput {
   error?: string;
 }
 
-export const OpenPerplexURLSpecificQueryParametersSchema: OpenPerplexQueryFromURLSchemaFormat =
+export const OpenPerplexURLSpecificQueryParametersSchemaForOpenAI: OpenPerplexQueryFromURLSchemaFormatForOpenAI =
   {
     name: "url_specific_query_parameters",
     schema: {

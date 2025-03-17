@@ -1,6 +1,6 @@
 import { OpenPerplexSearchResult } from "../Search/prompt&type";
 
-export interface OpenPerplexCustomSearchSchemaFormat {
+export interface OpenPerplexCustomSearchSchemaFormatForOpenAI {
   name: string;
   schema: {
     type: string;
@@ -83,7 +83,7 @@ export interface OpenPerplexCustomSearchOutput {
   error?: string;
 }
 
-export const OpenPerplexCustomSearchParametersSchema: OpenPerplexCustomSearchSchemaFormat =
+export const OpenPerplexCustomSearchParametersSchemaForOpenAI: OpenPerplexCustomSearchSchemaFormatForOpenAI =
   {
     name: "custom_search_parameters",
     schema: {

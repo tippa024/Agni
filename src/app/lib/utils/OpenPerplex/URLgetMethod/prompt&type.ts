@@ -1,4 +1,4 @@
-export interface OpenPerplexURLGetMethodSchemaFormat {
+export interface OpenPerplexURLGetMethodSchemaFormatForOpenAI {
   name: string;
   schema: {
     type: string;
@@ -26,7 +26,7 @@ export interface OpenPerplexGetURLOutput {
   error?: string;
 }
 
-export const OpenPerplexURLGetMethodParametersSchema: OpenPerplexURLGetMethodSchemaFormat =
+export const OpenPerplexURLGetMethodParametersSchemaForOpenAI: OpenPerplexURLGetMethodSchemaFormatForOpenAI =
   {
     name: "url_get_method_parameters",
     schema: {

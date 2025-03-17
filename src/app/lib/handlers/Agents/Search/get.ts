@@ -1,8 +1,8 @@
-import { OpenPerplexSearch } from "@/app/lib/utils/OpenPerplex/Search/apiCall";
+import { OpenPerplexSearch } from "../../../utils/OpenPerplex/Search/apiCall";
 import {
   SearchParameters,
   SearchOutput,
-} from "@/app/lib/utils/Search/prompt&type";
+} from "../../../utils/Search/prompt&type";
 
 export const getSearch = async (
   provider: string,
@@ -10,7 +10,7 @@ export const getSearch = async (
 ) => {
   console.log("Starting getSearch function");
   if (provider === "OpenPerplex") {
-    console.log("Getting search results from OpenPerplex");
+    console.log("Getting search results from OpenPerplex", searchParameters);
     try {
       const response = await OpenPerplexSearch(searchParameters);
       const { sources, llm_response } = response;

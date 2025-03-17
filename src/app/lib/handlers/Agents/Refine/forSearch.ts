@@ -1,24 +1,15 @@
-import { conversationHistory } from "../../../../utils/type";
-import { OpenPerplexSearchParameters } from "../../../../utils/OpenPerplex/Search/prompt&type";
-import { refineParametersForOpenPerplexSearch } from "../../../../utils/OpenPerplex/Search/refinePrameters";
-
-const FALLBACK_SEARCH_PARAMS_For_OpenPerplex = {
-  query: "",
-  date_context: "",
-  location: "in",
-  model: "gpt-4o-mini",
-  response_language: "en",
-  answer_type: "text",
-  search_type: "general",
-  return_citations: true,
-  return_sources: true,
-  return_images: false,
-  recency_filter: "last 24 hours",
-} as const;
-
+import { SearchParameters } from "@/app/lib/utils/Search/prompt&type";
+import { conversationHistory } from "../../../utils/Chat/prompt&type";
+import {
+  fallbackSearchParametersForOpenPerplex,
+  refineParametersForOpenPerplexSearch,
+} from "../../../utils/OpenPerplex/Search/refinePrameters";
+import { OpenPerplexSearchParameters } from "@/app/lib/utils/OpenPerplex/Search/prompt&type";
 export const queryRefinementForSearch = async (
   searchProvider: string,
   userMessage: string,
+  model: string,
+  modelProvider: string,
   conversationHistory: conversationHistory[]
 ) => {
   console.log("Starting Refining user query function for search");
@@ -28,22 +19,22 @@ export const queryRefinementForSearch = async (
       const refinedQuery = await refineParametersForOpenPerplexSearch(
         userMessage,
         conversationHistory,
-        "gpt-4o-mini",
-        "OpenAI"
+        model,
+        modelProvider
       );
 
       console.log("Refined query function success", refinedQuery);
 
-      return refinedQuery;
+      return refinedQuery as SearchParameters;
     } catch (error) {
-      console.error("Error in UserQueryRefinementForSearch:", error);
+      console.error("Error in queryRefinementForSearch Function:", error);
       console.log("using fallback search parameters");
       const fallbackData = {
-        ...FALLBACK_SEARCH_PARAMS_For_OpenPerplex,
+        ...fallbackSearchParametersForOpenPerplex,
         query: userMessage,
         date_context: `${new Date().getTimezoneOffset()}`,
       };
-      return fallbackData as OpenPerplexSearchParameters;
+      return fallbackData as SearchParameters;
     }
   }
   console.log(

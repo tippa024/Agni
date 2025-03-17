@@ -1,4 +1,4 @@
-import { conversationHistory } from "../../utils/type";
+import { conversationHistory } from "../../../utils/Chat/prompt&type";
 
 export function StreamlineConversationForAPI(
   conversationHistory: conversationHistory[]

@@ -21,7 +21,9 @@ export async function POST(req: NextRequest) {
   try {
     const body = await req.json();
 
-    const { messages, model } = body;
+    const { messages, model, systemMessage } = body;
+
+    console.log("Anthropic API route request body", body);
 
     if (!messages) {
       console.error("Missing messages in request body");
@@ -38,6 +40,7 @@ export async function POST(req: NextRequest) {
 
     const response = await anthropic.messages.create({
       model: model,
+      system: systemMessage,
       messages: messages,
       max_tokens: 1024,
       tools: [

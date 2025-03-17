@@ -1,17 +1,17 @@
 import { ChatState, ChatActions } from "../../../utils/Chat/prompt&type";
 import { contextualisedInputPromptAfterSearch } from "../../../utils/Search/prompt&type";
 
-import { setMessage } from "../Messages/set";
-import { setConversationHistory } from "../ConversationHistory/set";
+import { setMessage } from "../Functions/Messages/set";
+import { setConversationHistory } from "../Functions/ConversationHistory/set";
 
 import { SearchParameters } from "@/app/lib/utils/Search/prompt&type";
-import { queryRefinementForSearch } from "../Agents/Refine/forSearch";
-import { getSearch } from "../Agents/Search/get";
+import { queryRefinementForSearch } from "../../Agents/Refine/forSearch";
+import { getSearch } from "../../Agents/Search/get";
 
-import { ReadAllContextFilesNamesAndContent } from "../../../utils/APICalls/History/Context/ReadAllNamesandContent";
+import { MarkdownAPI } from "../../../utils/Context/Markdown/apiCall";
 
-import { StreamlineConversationForAPI } from "../../Model/prepareMessages";
-import { getModelStream } from "../../Model/getStream";
+import { StreamlineConversationForAPI } from "../../Agents/Model/prepareMessages";
+import { getModelStream } from "../../Agents/Model/getStream";
 
 export async function handleRawUserInput(
   e: React.FormEvent,
@@ -54,11 +54,17 @@ export async function handleRawUserInput(
       actions.setCurrentProcessingStep("starting search");
       let searchParameters;
 
+      //hardcoded for now
+      const queryRefinementModel = "gpt-4o-mini";
+      const queryRefinementModelProvider = "OpenAI";
+
       try {
         actions.setCurrentProcessingStep("refining query");
         const refinedQuery = (await queryRefinementForSearch(
           state.userPreferences.searchProvider,
           userMessage,
+          queryRefinementModel,
+          queryRefinementModelProvider,
           state.conversationHistory
         )) as SearchParameters;
         searchParameters = refinedQuery;
@@ -91,7 +97,7 @@ export async function handleRawUserInput(
     if (state.context) {
       actions.setCurrentProcessingStep("loading context");
       try {
-        const context = await ReadAllContextFilesNamesAndContent();
+        const context = await MarkdownAPI.ReadAllContextFilesNamesAndContent();
         contextualizedInput += `\n\nContext for your reference during the conversation:\n${context.files
           .map((file: any) => file.content)
           .join("\n")}`;

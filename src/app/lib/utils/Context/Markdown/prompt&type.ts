@@ -1,4 +1,4 @@
-import { Message } from "../Chat/prompt&type";
+import { Message } from "../../Chat/prompt&type";
 
 export const ChatSessionToMarkDownSystemMessage: Message = {
   role: "system",

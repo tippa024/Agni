@@ -1,6 +1,5 @@
-import { Message, systemMessage } from "../../utils/Chat/prompt&type";
-import { StreamingChatUsingAnthropicAPICall } from "../../utils/APICalls/Models/Chat/anthropic";
-import { StreamingChatUsingOpenAIAPICall } from "../../utils/APICalls/Models/Chat/openai";
+import { Message, systemMessage } from "../../../utils/Chat/prompt&type";
+import { streamTextAPI } from "../../../utils/Model/Stream/apiCall";
 
 export async function getModelStream(
   provider: string,
@@ -12,7 +11,7 @@ export async function getModelStream(
   if (provider === "Anthropic") {
     console.log("Starting Anthropic API call function");
     try {
-      const data = await StreamingChatUsingAnthropicAPICall(
+      const data = await streamTextAPI.Anthropic(
         systemMessage.content,
         params.messages,
         params.model
@@ -31,7 +30,7 @@ export async function getModelStream(
   if (provider === "OpenAI") {
     console.log("Starting OpenAI API call function");
     try {
-      const data = await StreamingChatUsingOpenAIAPICall(
+      const data = await streamTextAPI.OpenAI(
         systemMessage.content,
         params.messages,
         params.model

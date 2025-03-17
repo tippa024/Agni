@@ -7,7 +7,8 @@ import { UserInput } from "./components/ChatInput/ChatInput";
 import TextInput from "./components/TextInput/TextInput";
 import { handleRawUserInput } from "./lib/handlers/Chat/1Master/chatmaster";
 import { Message, UserPreferences, conversationHistory } from "./lib/utils/Chat/prompt&type";
-import { ChatToContext } from "./lib/handlers/Chat/Agents/Context/chatSessionToMarkDown";
+import { SynthesizeChatSessionToContext } from "./lib/handlers/Agents/Context/Synthesize/chatSession";
+import { conversationHistoryAPI } from "./lib/utils/Context/ConversationHistory/apiCall";
 
 
 
@@ -149,7 +150,8 @@ export default function Home() {
               <div className='flex justify-start'>
                 <button className='bg-[#4A4235] text-white px-3 py-1.5 opacity-20 hover:opacity-80 transition-colors duration-200 font-medium text-sm'
                   onClick={() => {
-                    ChatToContext(conversationHistory);
+                    SynthesizeChatSessionToContext(conversationHistory);
+                    conversationHistoryAPI.addNewMessages(conversationHistory);
                   }}
                 >
                   Save

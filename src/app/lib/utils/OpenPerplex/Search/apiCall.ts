@@ -10,7 +10,6 @@ export const OpenPerplexSearch = async (
       method: "POST",
       headers: {
         "Content-Type": "application/json",
-        "X-API-Key": process.env.OPENPERPLEX_API_KEY || "",
       },
       body: JSON.stringify(searchParameters),
     });

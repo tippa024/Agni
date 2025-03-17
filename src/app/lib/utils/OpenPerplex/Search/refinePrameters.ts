@@ -1,9 +1,23 @@
-import { conversationHistory } from "@/app/lib/utils/type";
+import { conversationHistory } from "@/app/lib/utils/Chat/prompt&type";
 import {
-  SearchQueryPrompt,
+  OpenPerplexSearchQueryRefinementPrompt,
   OpenPerplexSearchParameters,
-  OpenPerplexSearchParametersSchema,
+  OpenPerplexSearchParametersSchemaForOpenAI,
 } from "./prompt&type";
+
+export const fallbackSearchParametersForOpenPerplex = {
+  query: "",
+  date_context: "",
+  location: "in",
+  model: "gpt-4o-mini",
+  response_language: "en",
+  answer_type: "text",
+  search_type: "general",
+  return_citations: true,
+  return_sources: true,
+  return_images: false,
+  recency_filter: "last 24 hours",
+} as OpenPerplexSearchParameters;
 
 export const refineParametersForOpenPerplexSearch = async (
   userQuery: string,
@@ -15,15 +29,13 @@ export const refineParametersForOpenPerplexSearch = async (
 > => {
   console.log("Refining parameters for OpenPerplex Search");
   const refimentmessages = [
+    OpenPerplexSearchQueryRefinementPrompt,
     {
-      role: "system",
-      content: ` ${
-        SearchQueryPrompt.content
-      } Consider the chat history for context: ${JSON.stringify(
+      role: "user",
+      content: `Consider the chat history for context: ${JSON.stringify(
         conversationHistory
-      )} `,
+      )} and the user query: ${userQuery}`,
     },
-    { role: "user", content: userQuery },
   ];
 
   if (modelProvider === "OpenAI") {
@@ -38,7 +50,7 @@ export const refineParametersForOpenPerplexSearch = async (
           model: model,
           response_format: {
             type: "json_schema",
-            json_schema: OpenPerplexSearchParametersSchema,
+            json_schema: OpenPerplexSearchParametersSchemaForOpenAI,
           },
           temperature: 0.2,
           max_tokens: 1000,

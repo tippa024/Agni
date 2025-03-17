@@ -1,8 +1,6 @@
 import { useState, useEffect, useCallback, useRef } from "react";
 import MarkdownRenderer from "../render";
-import { WriteNewToContext } from "../../lib/utils/APICalls/History/Context/WriteANewFile";
-import { ReadAllContextFileNamesOnly } from "../../lib/utils/APICalls/History/Context/ReadAllFileNames";
-import { ReadAParticularContextFile } from "../../lib/utils/APICalls/History/Context/ReadAParticularFileContent";
+import { MarkdownAPI } from "../../lib/utils/Context/Markdown/apiCall";
 
 
 
@@ -71,7 +69,7 @@ export default function TextInput() {
                 .toLocaleString("en-IN", { timeZone: "Asia/Kolkata" })
                 .replace(/[/:\s]/g, "-")}.md`;
 
-            const result = await WriteNewToContext(filename, text);
+            const result = await MarkdownAPI.WriteNewToContext(filename, text);
 
             if (result && result.success) {
                 console.log(`File saved as ${result.filename} at ${result.path}`);
@@ -87,7 +85,7 @@ export default function TextInput() {
 
     useEffect(() => {
         const fetchContextFiles = async () => {
-            const response = await ReadAllContextFileNamesOnly();
+            const response = await MarkdownAPI.ReadAllContextFileNamesOnly();
             setContextFiles(response.files);
         };
         fetchContextFiles();
@@ -124,7 +122,7 @@ export default function TextInput() {
                                             key={index}
                                             className="px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 cursor-pointer"
                                             onClick={async () => {
-                                                const response = await ReadAParticularContextFile(file);
+                                                const response = await MarkdownAPI.ReadAParticularContextFile(file);
                                                 setText(response.content);
                                             }}
                                         >

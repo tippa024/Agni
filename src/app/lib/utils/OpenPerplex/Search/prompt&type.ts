@@ -1,10 +1,12 @@
+import { Message } from "@/app/lib/utils/Chat/prompt&type";
+
 export interface OpenPerplexSearchResult {
   title: string;
   link: string;
   snippet: string;
 }
 
-export interface OpenPerplexSearchParametersSchemaFormat {
+export interface OpenPerplexSearchParametersSchemaFormatForOpenAI {
   name: string;
   schema: {
     type: string;
@@ -93,7 +95,7 @@ export interface OpenPerplexSearchOutput {
   error?: string;
 }
 
-export const OpenPerplexSearchParametersSchema: OpenPerplexSearchParametersSchemaFormat =
+export const OpenPerplexSearchParametersSchemaForOpenAI: OpenPerplexSearchParametersSchemaFormatForOpenAI =
   {
     name: "search_parameters",
     schema: {
@@ -170,56 +172,63 @@ export const OpenPerplexSearchParametersSchema: OpenPerplexSearchParametersSchem
     strict: true,
   };
 
-export const OpenPerplexSearchQueryRefinementPrompt = {
+export const OpenPerplexSearchQueryRefinementPrompt: Message = {
   role: "system",
   content: `You are a specialized agent that refines user queries to maximize search result quality. The current day, date and time is ${new Date().toLocaleString()}.
   
   Your task is to analyze the user's query and provide the most optimal search parameters. The parameters are as follows:
   
   query: ${
-    OpenPerplexSearchParametersSchema.schema.properties.query.description
+    OpenPerplexSearchParametersSchemaForOpenAI.schema.properties.query
+      .description
   }
   date_context: ${
-    OpenPerplexSearchParametersSchema.schema.properties.date_context.description
+    OpenPerplexSearchParametersSchemaForOpenAI.schema.properties.date_context
+      .description
   }
   location: ${
-    OpenPerplexSearchParametersSchema.schema.properties.location.description
+    OpenPerplexSearchParametersSchemaForOpenAI.schema.properties.location
+      .description
   }
   model: ${
-    OpenPerplexSearchParametersSchema.schema.properties.model.description
+    OpenPerplexSearchParametersSchemaForOpenAI.schema.properties.model
+      .description
   }
   response_language: ${
-    OpenPerplexSearchParametersSchema.schema.properties.response_language
-      .description
+    OpenPerplexSearchParametersSchemaForOpenAI.schema.properties
+      .response_language.description
   }
   answer_type: ${
-    OpenPerplexSearchParametersSchema.schema.properties.answer_type.description
-  }
-  search_type: ${
-    OpenPerplexSearchParametersSchema.schema.properties.search_type.description
-  }
-  return_citations: ${
-    OpenPerplexSearchParametersSchema.schema.properties.return_citations
+    OpenPerplexSearchParametersSchemaForOpenAI.schema.properties.answer_type
       .description
   }
+  search_type: ${
+    OpenPerplexSearchParametersSchemaForOpenAI.schema.properties.search_type
+      .description
+  }
+  return_citations: ${
+    OpenPerplexSearchParametersSchemaForOpenAI.schema.properties
+      .return_citations.description
+  }
   return_sources: ${
-    OpenPerplexSearchParametersSchema.schema.properties.return_sources
+    OpenPerplexSearchParametersSchemaForOpenAI.schema.properties.return_sources
       .description
   }
   return_images: ${
-    OpenPerplexSearchParametersSchema.schema.properties.return_images
+    OpenPerplexSearchParametersSchemaForOpenAI.schema.properties.return_images
       .description
   }
   recency_filter: ${
-    OpenPerplexSearchParametersSchema.schema.properties.recency_filter
+    OpenPerplexSearchParametersSchemaForOpenAI.schema.properties.recency_filter
       .description
   }
   
   Your response must be a valid JSON object with this schema: ${JSON.stringify(
-    OpenPerplexSearchParametersSchema,
+    OpenPerplexSearchParametersSchemaForOpenAI,
     null,
     2
   )}
   
-  Provide your response as a JSON object (no other text) with the refined query and all applicable search parameters.`,
+  Provide your response as a JSON object (no other text) with the refined query and all applicable search parameters.
+  Please consider the chat history given by the user to provide the most optimal search parameters.`,
 };
