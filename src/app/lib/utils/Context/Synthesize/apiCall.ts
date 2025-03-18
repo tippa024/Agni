@@ -1,17 +1,29 @@
-import { Message } from "../../Chat/prompt&type";
+import { conversationHistory, Message } from "../../Chat/prompt&type";
 import { SynthesizeConversationToMarkDownSystemPrompt } from "./prompt&type";
 
 export const SynthesizeAPI = {
   ConversationToMarkDown: async (
-    messages: Message,
+    conversationHistory: conversationHistory[],
     model: string,
     modelProvider: string
   ) => {
+    if (conversationHistory.length === 0) {
+      console.log("Conversation history is empty, skipping synthesis");
+      return null;
+    }
+
     console.log(
       "Synthesizing conversation to markdown using Anthropic model API call starting",
       model,
-      messages
+      conversationHistory
     );
+
+    const synthesisMessage = {
+      role: "user",
+      content: `
+      ${JSON.stringify(conversationHistory, null, 2)}
+      `,
+    } as Message;
 
     try {
       if (modelProvider === "Anthropic") {
@@ -24,7 +36,7 @@ export const SynthesizeAPI = {
               body: JSON.stringify({
                 systemMessage:
                   SynthesizeConversationToMarkDownSystemPrompt.content,
-                messages: messages,
+                messages: [synthesisMessage],
                 model: model,
               }),
             }
@@ -45,6 +57,7 @@ export const SynthesizeAPI = {
             data
           );
 
+          //handle the case where the filename is missing from the API call
           if (data.filename === "" && data.markdown !== "") {
             data.filename = `Context_${new Date()
               .toLocaleString("en-IN", { timeZone: "Asia/Kolkata" })
@@ -55,9 +68,11 @@ export const SynthesizeAPI = {
             );
           }
 
+          //handle the case where the markdown is missing from the API call
           if (data.markdown === "" && data.text !== "") {
             data.markdown = "Not enough context to synthesize a markdown file";
             console.log(data.markdown);
+            return;
           }
 
           console.log(

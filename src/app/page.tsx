@@ -7,9 +7,9 @@ import { UserInput } from "./components/ChatInput/ChatInput";
 import TextInput from "./components/TextInput/TextInput";
 import { handleRawUserInput } from "./lib/handlers/Chat/1Master/chatmaster";
 import { Message, UserPreferences, conversationHistory } from "./lib/utils/Chat/prompt&type";
-import { SynthesizeChatSessionToContext } from "./lib/handlers/Agents/Context/Synthesize/chatSession";
 import { conversationHistoryAPI } from "./lib/utils/Context/ConversationHistory/apiCall";
-
+import { MarkdownAPI } from "./lib/utils/Context/Markdown/apiCall";
+import { SynthesizeAPI } from "./lib/utils/Context/Synthesize/apiCall";
 
 
 const sourceSerif4 = Source_Serif_4({
@@ -149,8 +149,11 @@ export default function Home() {
             <div className='flex justify-between'>
               <div className='flex justify-start'>
                 <button className='bg-[#4A4235] text-white px-3 py-1.5 opacity-20 hover:opacity-80 transition-colors duration-200 font-medium text-sm'
-                  onClick={() => {
-                    SynthesizeChatSessionToContext(conversationHistory);
+                  onClick={async () => {
+                    const context = await SynthesizeAPI.ConversationToMarkDown(conversationHistory, "claude-3-5-sonnet-20241022", "Anthropic");
+                    if (context) {
+                      await MarkdownAPI.WriteNewToContext(context.filename, context.markdown);
+                    }
                     conversationHistoryAPI.addNewMessages(conversationHistory);
                   }}
                 >

@@ -3,7 +3,7 @@ import { conversationHistory } from "../../Chat/prompt&type";
 export const conversationHistoryAPI = {
   addNewMessages: async (conversationHistory: conversationHistory[]) => {
     console.log(
-      "Adding new messages to conversation history via AddNewMessagesToConversationHistory API"
+      "Adding new messages to conversation history via AddNewMessagesToConversationHistory API Call starting"
     );
     try {
       const response = await fetch(`/api/Context/ConversationHistory/Write`, {
@@ -19,6 +19,10 @@ export const conversationHistoryAPI = {
       //     "newMessagesCount": 5
       //     "newMessages": [newMessages]
       // }
+      console.log(
+        "AddNewMessagesToConversationHistory API Call completed",
+        data
+      );
       return data;
     } catch (error) {
       console.error(

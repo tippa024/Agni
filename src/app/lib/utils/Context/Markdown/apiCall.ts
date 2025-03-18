@@ -70,13 +70,29 @@ export const MarkdownAPI = {
   },
 
   WriteNewToContext: async (filename: string, content: string) => {
+    if (content === "") {
+      console.log(
+        "Content received by WriteNewToContext API is empty, skipping write"
+      );
+      return;
+    }
+    if (filename === "") {
+      filename = `Context_${new Date()
+        .toLocaleString("en-IN", { timeZone: "Asia/Kolkata" })
+        .replace(/[/:\s]/g, "-")}`;
+      console.log(
+        "Filename received by WriteNewToContext API is empty, using boilerplate filename",
+        filename
+      );
+    }
+
     console.log(
       `WriteToContext API Call starting` + "\n\n" + filename + "\n\n" + content
     );
     try {
       const response = await fetch(`/api/Context/MarkDown/Write`, {
         method: "POST",
-        body: JSON.stringify({ filename, content }),
+        body: JSON.stringify({ filename: filename + ".md", content }),
       });
       const data = await response.json();
       console.log("WriteToContext API Response", data);
