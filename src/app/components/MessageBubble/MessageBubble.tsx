@@ -1,7 +1,7 @@
 import { useState, useEffect, memo } from 'react';
 import { Source_Serif_4 } from 'next/font/google';
 import MarkdownRenderer from '../render';
-import { MessageBubbleProps, SearchResult } from '../../lib/utils/Chat/prompt&type';
+import { MessageBubbleProps, SearchResult } from '@/Mediums/Chat/Utils/prompt&type';
 
 const sourceSerif4 = Source_Serif_4({
     subsets: ['latin'],

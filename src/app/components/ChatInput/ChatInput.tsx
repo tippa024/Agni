@@ -1,7 +1,7 @@
-import { Switch } from "../ui/Switch";
-import { Label } from "../ui/Label";
+import { Switch } from "@/app/components/ui/Switch";
+import { Label } from "@/app/components/ui/Label";
 import { memo } from "react";
-import { ChatInputProps } from "../../lib/utils/Chat/prompt&type";
+import { ChatInputProps } from "@/Mediums/Chat/Utils/prompt&type";
 
 
 export const UserInput = memo(function UserInput({

@@ -41,9 +41,7 @@ export async function POST(req: NextRequest) {
 
     const refinedSearchParameters = response.choices[0].message.content;
 
-    console.log("Search Query Refinement Through OpenAI API Route Finished");
-
-    return new Response(JSON.stringify(refinedSearchParameters));
+    return new Response(refinedSearchParameters);
   } catch (error: any) {
     console.error(
       "Search Query Refinement Through OpenAI API Route Error:",

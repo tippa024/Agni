@@ -5,11 +5,12 @@ import { Source_Serif_4 } from 'next/font/google';
 import { MessageBubble } from "./components/MessageBubble/MessageBubble";
 import { UserInput } from "./components/ChatInput/ChatInput";
 import TextInput from "./components/TextInput/TextInput";
-import { handleRawUserInput } from "./lib/handlers/Chat/1Master/chatmaster";
-import { Message, UserPreferences, conversationHistory } from "./lib/utils/Chat/prompt&type";
-import { conversationHistoryAPI } from "./lib/utils/Context/ConversationHistory/apiCall";
-import { MarkdownAPI } from "./lib/utils/Context/Markdown/apiCall";
-import { SynthesizeAPI } from "./lib/utils/Context/Synthesize/apiCall";
+import { handleRawUserInput } from "../Mediums/Chat/master";
+import { ChatState, Message, UserPreferences, conversationHistory } from "../Mediums/Chat/Utils/prompt&type";
+import { conversationHistoryAPI } from "@/Context/Utils/ConversationHistory/apiCall";
+import { MarkdownAPI } from "@/Context/Utils/Markdown/apiCall";
+import { SynthesizeAPI } from "@/Context/Utils/Synthesize/apiCall";
+import { getLocation } from "./location";
 
 
 const sourceSerif4 = Source_Serif_4({
@@ -19,15 +20,28 @@ const sourceSerif4 = Source_Serif_4({
 
 
 export default function Home() {
-  const [chatMode, setChatMode] = useState<'chat' | 'text'>('chat');
+  const [mode, setMode] = useState<'chat' | 'text'>('chat');
+
+  const [chatState, setChatState] = useState<ChatState>({
+    input: '',
+    messages: [] as Message[],
+    currentProcessingStep: '',
+    userPreferences: {
+      searchEnabled: false,
+      context: true,
+      model: ["gpt-4o-mini", "OpenAI"] as ["gpt-4o-mini", "OpenAI"] | ["claude-3-5-haiku-20241022", "Anthropic"] | ["claude-3-5-sonnet-20241022", "Anthropic"],
+    },
+    conversationHistory: [] as conversationHistory[],
+    location: { latitude: 0, longitude: 0 },
+  });
+
   const [input, setInput] = useState('');
-  const [context, setContext] = useState<boolean>(false);
   const [messages, setMessages] = useState<Message[]>([]);
   const [currentProcessingStep, setCurrentProcessingStep] = useState<string>('');
 
-
   const [userPreferences, setUserPreferences] = useState<UserPreferences>({
     searchEnabled: false,
+    context: true,
     model: ["gpt-4o-mini", "OpenAI"] as ["gpt-4o-mini", "OpenAI"] | ["claude-3-5-haiku-20241022", "Anthropic"] | ["claude-3-5-sonnet-20241022", "Anthropic"],
   });
 
@@ -35,46 +49,19 @@ export default function Home() {
   const [locationOn, setLocationOn] = useState<boolean>(false);
   const [location, setLocation] = useState<{ latitude: number, longitude: number } | null>(null);
 
-  const getLocation = async (): Promise<{ latitude: number, longitude: number } | null> => {
-    if (navigator.geolocation) {
-      try {
-        const position = await new Promise<GeolocationPosition>((resolve, reject) =>
-          navigator.geolocation.getCurrentPosition(
-            resolve,
-            reject,
-            {
-              enableHighAccuracy: true,
-              timeout: 1000,
-              maximumAge: 0
-            }
-          )
-        );
-        const coordinates = {
-          latitude: position.coords.latitude,
-          longitude: position.coords.longitude
-        };
-
-        console.log("User location:", coordinates);
-        setLocation(coordinates);
+  useEffect(() => {
+    const fetchLocation = async () => {
+      const userLocation = await getLocation();
+      if (userLocation) {
+        setLocation(userLocation);
         setLocationOn(true);
-        return coordinates;
-      } catch (error) {
-        console.error("Error getting location:", error);
-        setLocation(null);
+      } else {
+        console.log("Could not get user location");
         setLocationOn(false);
-        return null;
       }
-    } else {
-      console.log("Geolocation API not available in this browser");
-      setLocation(null);
-      setLocationOn(false);
-      return null;
-    }
-  };
-
-
-
-
+    };
+    fetchLocation();
+  }, []);
 
   const onSubmit = async (e: React.FormEvent) => {
     await handleRawUserInput(
@@ -85,7 +72,6 @@ export default function Home() {
         userPreferences,
         currentProcessingStep,
         conversationHistory,
-        context,
         location: location ? location : { latitude: 0, longitude: 0 },
       },
       {
@@ -93,12 +79,10 @@ export default function Home() {
         setInput,
         setCurrentProcessingStep,
         setConversationHistory,
-        setLocation,
       }
     );
   };
 
-  //ref for auto-scrolling
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
   // Scroll to bottom whenever messages change
@@ -123,13 +107,13 @@ export default function Home() {
         </div>
         <div className='flex-1 flex justify-end'>
           <button
-            onClick={() => setChatMode(chatMode === 'chat' ? 'text' : 'chat')}
+            onClick={() => setMode(mode === 'chat' ? 'text' : 'chat')}
             className="px-3 py-1.5 opacity-20 hover:opacity-80 transition-colors duration-200 text-[#4A4235] font-medium text-sm">
-            {chatMode === 'chat' ? 'TEXT' : 'CHAT'}
+            {mode === 'chat' ? 'TEXT' : 'CHAT'}
           </button>
         </div>
       </div>
-      {chatMode === 'chat' ? (
+      {mode === 'chat' ? (
         messages.length === 0 ? (
           <div className=" w-full  flex flex-col min-h-[90vh] items-center justify-center p-4">
             <div className=" max-w-3xl w-full transform transition-all duration-300 ease-in-out">
@@ -162,9 +146,9 @@ export default function Home() {
               </div>
               <div className='flex justify-end'>
                 <button className={`bg-[#4A4235] text-white px-3 py-1.5 transition-colors duration-200 font-medium text-sm
-                 ${context ? 'opacity-80' : 'opacity-20'}`}
+                 ${userPreferences.context ? 'opacity-80' : 'opacity-20'}`}
                   onClick={() => {
-                    setContext(!context);
+                    setUserPreferences({ ...userPreferences, context: !userPreferences.context });
                   }}
                 >
                   Context

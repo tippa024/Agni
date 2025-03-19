@@ -1,7 +1,8 @@
 import { useState, useEffect, useCallback, useRef } from "react";
 import MarkdownRenderer from "../render";
-import { MarkdownAPI } from "../../lib/utils/Context/Markdown/apiCall";
-
+import { MarkdownAPI } from "@/Context/Utils/Markdown/apiCall";
+import { handleRawTextInput } from "@/Mediums/Text/master";
+import { SynthesizeAPI } from "@/Context/Utils/Synthesize/apiCall";
 
 
 export default function TextInput() {
@@ -13,12 +14,21 @@ export default function TextInput() {
     const [contextFiles, setContextFiles] = useState<string[]>([]);
     const textAreaRef = useRef<HTMLTextAreaElement>(null);
 
+    const textstream = async () => {
+        const response = await handleRawTextInput(text);
+        if (response) {
+            for await (const chunk of response.stream()) {
+                setText(prev => prev + chunk);
+            }
+        }
+    }
+
 
     const handleKeyboardShortcuts = useCallback((e: KeyboardEvent) => {
         // Save to Context Button toggle (Ctrl+B)
         if ((e.metaKey || e.ctrlKey) && e.key === 'b') {
             e.preventDefault();
-            setShowSaveToContextButton(prev => !prev);
+            textstream();
         }
 
         // Toggle Markdown view (Ctrl+J)
@@ -33,6 +43,7 @@ export default function TextInput() {
             if (text.length > 0) {
                 setShowSaveConfirmation(true);
             }
+
         }
 
         // Handle dialog keyboard navigation
@@ -98,9 +109,24 @@ export default function TextInput() {
                 <button
                     className={`bg-[#4A4235] text-white px-3 py-1.5 hover:opacity-80 transition-colors duration-200 font-medium text-sm
                     ${showSaveToContextButton ? 'opacity-20' : 'opacity-0'}`}
-                    onClick={saveToContext}
+                    onClick={async () => {
+                        const response = await SynthesizeAPI.TextToMarkDown(text, "claude-3-5-sonnet-20241022", "Anthropic");
+                        if (response) {
+                            MarkdownAPI.WriteNewToContext(response.filename, response.markdown);
+                        }
+                    }}
                 >
                     Save to Context
+                </button>
+            </div>
+            <div className="flex justify-center">
+                <button
+                    className={`bg-[#937d2c] text-white px-3 py-1.5  transition-colors duration-200 font-medium text-sm
+                    ${text.length > 0 ? 'opacity-80' : 'opacity-0'}`}
+                    disabled={text.length === 0}
+                    onClick={() => textstream()}
+                >
+                    Agni
                 </button>
             </div>
             <div className='flex justify-end'>
@@ -186,8 +212,11 @@ export default function TextInput() {
                             </button>
                             <button
                                 className="px-4 py-2 bg-gray-800 text-white hover:border-gray-800 border hover:bg-white hover:text-gray-800 rounded-md"
-                                onClick={() => {
-                                    saveToContext();
+                                onClick={async () => {
+                                    const response = await SynthesizeAPI.TextToMarkDown(text, "claude-3-5-sonnet-20241022", "Anthropic");
+                                    if (response) {
+                                        MarkdownAPI.WriteNewToContext(response.filename, response.markdown);
+                                    }
                                     setShowSaveConfirmation(false);
                                 }}
                             >
