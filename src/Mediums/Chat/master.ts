@@ -1,11 +1,13 @@
 import { ChatState, ChatActions, systemMessage } from "./Utils/prompt&type";
-import { contextualisedInputPromptAfterSearch } from "@/Search/Utils/prompt&type";
+import {
+  contextualisedInputPromptAfterSearch,
+  SearchOutput,
+} from "@/Search/Utils/prompt&type";
 
 import { setMessage } from "./Handlers/Functions/setMessages";
 import { setConversationHistory } from "./Handlers/Functions/setConversation";
 
 import { getSearch } from "@/Search/Handlers/get";
-import { MarkdownAPI } from "@/Context/Utils/Markdown/apiCall";
 
 import { getModelStream } from "@/Models/Stream/Handlers/getStream";
 
@@ -50,16 +52,19 @@ export async function handleRawUserInput(
 
       {
         try {
-          const searchOutput = await getSearch(
+          const searchOutput = (await getSearch(
             userMessage,
             state.userPreferences.searchProvider,
             state.conversationHistory,
             actions.setCurrentProcessingStep,
             true,
             { model: ["gpt-4o-mini", "OpenAI"] }
-          );
+          )) as SearchOutput;
 
           const { sources, textOutput } = searchOutput;
+
+          console.log("sources", sources);
+          console.log("textOutput", textOutput);
 
           setMessage.SourcesToCurrent(sources, actions.setMessages);
 
@@ -68,6 +73,8 @@ export async function handleRawUserInput(
           contextualizedInput = `${contextualisedInputPromptAfterSearch} users initial question: "${userMessage}". Search Results: ${JSON.stringify(
             sources
           )}Extracted Content: ${textOutput}`;
+
+          console.log("Input after search", contextualizedInput);
         } catch (error) {
           console.error("Error in OpenPerplex Refine Search:", error);
         }

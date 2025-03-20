@@ -32,10 +32,10 @@ export const getSearch = async (
       const { sources, textOutput } = response;
       currentProcessingStep("Completed OpenPerplex Search");
       console.log("GetSearch function success");
-      return { sources, textOutput };
+      return { sources, textOutput } as SearchOutput;
     } catch (error) {
       console.error("Error in getSearch for OpenPerplex", error);
-      return { sources: [], textOutput: "Error in getSearch" } as SearchOutput;
+      throw error;
     }
   }
   throw new Error(`Search Provider ${searchProvider} not supported`);

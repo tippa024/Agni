@@ -63,7 +63,7 @@ export const OpenPerplexAPI = {
         throw new Error(searchData.error);
       }
 
-      console.log("OpenPerplex Search API Client - Completed", searchData);
+      console.log("OpenPerplex Search API Client - Completed");
 
       return searchData as SearchOutput;
     } catch (error: any) {

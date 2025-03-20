@@ -118,7 +118,8 @@ export const OpenPerplexSearchParametersSchemaForOpenAI: OpenPerplexSearchParame
         },
         model: {
           type: "string",
-          description: "defaults to 'gpt-4o-mini'. keep it to that",
+          description:
+            "defaults to 'gpt-4o-mini'. keep it to that unless otherwise specified",
         },
         response_language: {
           type: "string",

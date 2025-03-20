@@ -18,7 +18,7 @@ export async function POST(req: NextRequest) {
 
   try {
     const { messages, model, systemMessage } = await req.json();
-    console.log(" Anthropic API route Starting", messages);
+    console.log(" Anthropic API route Starting");
 
     if (!messages || !Array.isArray(messages)) {
       return new Response("Messages are required", { status: 400 });

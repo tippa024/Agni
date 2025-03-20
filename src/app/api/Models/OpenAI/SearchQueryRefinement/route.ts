@@ -28,7 +28,7 @@ export async function POST(req: NextRequest) {
     const response = await openai.chat.completions.create(
       {
         model: model,
-        messages,
+        messages: messages,
         response_format: response_format,
         stream: false,
         temperature: temperature,

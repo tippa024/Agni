@@ -1,7 +1,6 @@
 import { NextRequest } from "next/server";
-import { OpenPerplexSearchParameters } from "@/app/lib/utils/OpenPerplex/Search/prompt&type";
+import { OpenPerplexSearchParameters } from "@/Search/Utils/OpenPerplex/prompt&type";
 
-// Validate API key at startup
 const apiKey = process.env.OPENPERPLEX_API_KEY;
 if (!apiKey) {
   throw new Error("OPENPERPLEX_API_KEY is not configured");
@@ -72,7 +71,6 @@ export async function POST(request: NextRequest) {
     const data = await response.json();
 
     console.log("OpenPerplex Search API Route - Completed");
-
     return Response.json(data);
   } catch (error: any) {
     console.error("OpenPerplex Search Error:", error);
