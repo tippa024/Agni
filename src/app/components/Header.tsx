@@ -1,6 +1,6 @@
 import { getLocation } from "../location";
 import { Dispatch, SetStateAction, useEffect, useState } from "react";
-export default function Header({ locationOn, mode, setMode }: { locationOn: boolean, mode: string, setMode: Dispatch<SetStateAction<"chat" | "text">> }) {
+export default function Header({ locationOn, mode, setMode, location }: { locationOn: boolean, mode: string, setMode: Dispatch<SetStateAction<"chat" | "text">>, location: { latitude: number, longitude: number } }) {
 
     const [time, setTime] = useState(new Date().toLocaleDateString('en-GB') + " " + new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' }));
 
@@ -17,8 +17,8 @@ export default function Header({ locationOn, mode, setMode }: { locationOn: bool
             <div className='flex-1 flex justify-start'>
                 <button
                     onClick={() => getLocation()}
-                    className={`px-3 py-1.5 opacity-20 hover:opacity-80 transition-colors duration-200 text-[#4A4235] font-medium text-sm ${locationOn ? 'opacity-80' : 'opacity-20'}`}>
-                    Location
+                    className={`px-3 py-1.5 opacity-20 hover:opacity-80 transition-colors duration-200 text-[#4A4235]  text-sm ${locationOn ? 'font-mono' : 'font-medium'}`}>
+                    {locationOn ? `${location.latitude.toFixed(2)}°N ${location.longitude.toFixed(2)}°E` : 'Location'}
                 </button>
             </div>
             <div className='flex'>

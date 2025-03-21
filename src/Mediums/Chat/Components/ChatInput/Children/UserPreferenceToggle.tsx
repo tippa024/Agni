@@ -3,7 +3,7 @@ import { Switch } from "@/Mediums/Chat/Components/ChatInput/ui/Switch";
 import { Label } from "@/Mediums/Chat/Components/ChatInput/ui/Label";
 import { Dispatch, memo, SetStateAction } from "react";
 
-export const UserPreferenceToggle = memo(function UserPreferenceToggle({
+export const UserPreferenceToggle = function UserPreferenceToggle({
     userPreferences,
     setUserPreferences,
 }: {
@@ -32,16 +32,14 @@ export const UserPreferenceToggle = memo(function UserPreferenceToggle({
                                     });
                                 }
                             }}
-                            className="data-[state=checked]:bg-[#4A4235]"
                         />
                         <Label className={`text-sm transition-opacity duration-200 ${userPreferences.searchEnabled ? 'text-[#4A4235] font-medium opacity-100' : 'text-[#4A4235] opacity-50'}`}>
                             Search
                         </Label>
                     </div>
 
-
+                    {/* Model Selector */}
                     <div className="flex items-center gap-2">
-                        {/* Model Logo */}
                         <div className="w-6 h-6 flex ml-2.5 items-center justify-center">
                             {userPreferences.model[1] === "OpenAI" ? (
                                 <svg viewBox="0 0 24 24" className="w-5 h-5">
@@ -60,8 +58,6 @@ export const UserPreferenceToggle = memo(function UserPreferenceToggle({
                                 </svg>
                             )}
                         </div>
-
-                        {/* Model Selector */}
                         <select
                             value={userPreferences.model[0]}
                             onChange={(e) => {
@@ -91,4 +87,4 @@ export const UserPreferenceToggle = memo(function UserPreferenceToggle({
             </div>
         </div>
     )
-})
+}

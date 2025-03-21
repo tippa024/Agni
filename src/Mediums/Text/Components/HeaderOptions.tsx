@@ -48,11 +48,12 @@ const HeaderOptions = ({ text, setText }: { text: string, setText: Dispatch<SetS
             <div className="flex justify-center">
                 <button
                     className={`bg-[#937d2c] text-white px-3 py-1.5  transition-colors duration-200 font-medium text-sm
-        ${text.length > 0 ? 'opacity-80' : 'opacity-0'}`}
+        ${text.length > 0 ? 'opacity-80' : 'opacity-80'}`}
                     disabled={text.length === 0}
                     onClick={() => textstream()}
                 >
-                    Agni
+                    /Theory
+                    /Agni
                 </button>
             </div>
             <div className='flex justify-end'>

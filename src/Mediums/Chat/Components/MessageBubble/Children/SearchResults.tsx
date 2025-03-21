@@ -1,7 +1,7 @@
 import { SearchResult } from "@/Mediums/Chat/Utils/prompt&type";
 import { useState } from "react";
 
-const SearchResultsinChat = ({ sources }: { sources: SearchResult[] }) => {
+const SearchResultsinChat = function SearchResultsinChat({ sources }: { sources: SearchResult[] }) {
 
     const [showAllSources, setShowAllSources] = useState(false);
     if (sources && sources.length > 0) {

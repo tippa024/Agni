@@ -1,6 +1,6 @@
-import { memo } from "react";
 
-export const SendButton = memo(function SendButton({ input }: { input: string }) {
+
+export const SendButton = function SendButton({ input }: { input: string }) {
     return (
         <div className="transition-all duration-300 ease-out opacity-0 scale-90 origin-center"
             style={{
@@ -19,4 +19,4 @@ export const SendButton = memo(function SendButton({ input }: { input: string })
             </button>
         </div>
     );
-});
+};

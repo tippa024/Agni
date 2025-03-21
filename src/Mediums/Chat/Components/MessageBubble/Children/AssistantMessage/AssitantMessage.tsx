@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import { Message } from "@/Mediums/Chat/Utils/prompt&type";
 
 
-const AssistantMessageinChat = ({ message, messageComponentIndex, currentProcessingStep, font }: { message: Message, messageComponentIndex: number, currentProcessingStep: string | undefined, font: { className: string } }) => {
+const AssistantMessageinChat = function AssistantMessageinChat({ message, messageComponentIndex, currentProcessingStep, font }: { message: Message, messageComponentIndex: number, currentProcessingStep: string | undefined, font: { className: string } }) {
 
     const [isThinkingCollapsed, setIsThinkingCollapsed] = useState(true);
     const [segmentedMessageContent, setSegmentedMessageContent] = useState<{ thinking?: string; answer?: string }>({});
@@ -28,7 +28,7 @@ const AssistantMessageinChat = ({ message, messageComponentIndex, currentProcess
     return (
         <div className="flex justify-start">
             <div className=" w-[100%] rounded-sm pr-8 pl-2 py-4  border-white border-4">
-                <CurrentStepAndTime messageComponentIndex={messageComponentIndex} currentProcessingStep={currentProcessingStep} font={font} />
+                <CurrentStepAndTime messageComponentIndex={messageComponentIndex} currentProcessingStep={currentProcessingStep} font={font} timestamp={message.timestamp} />
 
 
                 {segmentedMessageContent.thinking && (

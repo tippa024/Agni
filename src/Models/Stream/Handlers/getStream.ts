@@ -18,7 +18,7 @@ export async function getModelStream(
     currentProcessingStep("loading context");
     try {
       const context = await MarkdownAPI.ReadAllContextFilesNamesAndContent();
-      params.userMessage += `\n\nContext for your reference during the conversation:\n${context.files
+      params.systemMessage += `\n\nContext for your reference during the conversation:\n${context.files
         .map((file: any) => file.content)
         .join("\n")}`;
     } catch (error) {

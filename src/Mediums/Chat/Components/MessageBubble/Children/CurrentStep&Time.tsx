@@ -1,5 +1,5 @@
 
-const CurrentStepAndTime = ({ messageComponentIndex, currentProcessingStep, font }: { messageComponentIndex: number, currentProcessingStep: string | undefined, font: { className: string } }) => {
+const CurrentStepAndTime = ({ messageComponentIndex, currentProcessingStep, font, timestamp }: { messageComponentIndex: number, currentProcessingStep: string | undefined, font: { className: string }, timestamp: string }) => {
     return (
         <div className="flex items-center justify-between mb-4">
             <div className="flex items-center">
@@ -24,7 +24,7 @@ const CurrentStepAndTime = ({ messageComponentIndex, currentProcessingStep, font
                     )}
             </div>
             <div className='text-xs text-[#2C2C2C]/50 font-mono'>
-                {new Date().toLocaleDateString('en-GB')} {new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' })}
+                {timestamp}
             </div>
         </div>
     )

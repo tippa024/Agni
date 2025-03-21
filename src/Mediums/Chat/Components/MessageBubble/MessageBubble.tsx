@@ -1,4 +1,4 @@
-import { memo } from 'react';
+
 import { Source_Serif_4 } from 'next/font/google';
 import { MessageBubbleProps } from '@/Mediums/Chat/Utils/prompt&type';
 import UserMessageinChat from './Children/UserMessage';
@@ -10,11 +10,12 @@ const sourceSerif4 = Source_Serif_4({
     weight: ['400', '600', '700'],
 });
 
-export const MessageBubble = memo(function MessageBubble({
+export const MessageBubble = function MessageBubble({
     message,
     messageComponentIndex,
     currentProcessingStep,
 }: MessageBubbleProps) {
+
 
     if (message.role === 'user') {
         return (
@@ -29,4 +30,4 @@ export const MessageBubble = memo(function MessageBubble({
     return (
         <AssistantMessageinChat message={message} messageComponentIndex={messageComponentIndex} currentProcessingStep={currentProcessingStep} font={sourceSerif4} />
     );
-});
+};

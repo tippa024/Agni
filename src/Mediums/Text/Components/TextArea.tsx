@@ -17,9 +17,47 @@ const TextArea = ({ text, setText, }: { text: string, setText: Dispatch<SetState
         }
     }
 
+    const extractMessage = (text: string) => {
+        const regex = /\[\[(.*?)\]\]/g;
+        const matches = [];
+        let match;
+
+        while ((match = regex.exec(text)) !== null) {
+            matches.push(match[1]);
+        }
+
+        return matches.length > 0 ? matches[0] : text;
+    }
+
+    let contextMessage = "";
+
+    const extractAndRemoveMessage = (text: string) => {
+        const regex = /\[\[(.*?)\]\]/g;
+        const matches = [];
+        let match;
+        let extractedMessage = "";
+
+        while ((match = regex.exec(text)) !== null) {
+            matches.push(match[1]);
+        }
+
+        if (matches.length > 0) {
+            extractedMessage = matches[0];
+            // Remove the [[message]] from the text
+            const cleanedText = text.replace(/\[\[.*?\]\]/, "").trim();
+            setText(cleanedText);
+            contextMessage = cleanedText;
+            return extractedMessage;
+        }
+
+        return text;
+    }
+
     const textstream = async () => {
-        const response = await handleRawTextInput(text);
-        setText(prev => prev + "\n\n$");
+        const userQuestion = extractAndRemoveMessage(text);
+        const message = 'The context for this question is: ' + contextMessage + "\n\n" + 'The question is: ' + userQuestion + "your output should have a natural flow from the context and should also answer the question. Your answer will be appened to the context and that will form a new writting"
+        const response = await handleRawTextInput(message);
+        setText(prev => prev + "\n\n");
         if (response) {
             for await (const chunk of response.stream()) {
                 setText(prev => prev + chunk);
@@ -73,24 +111,15 @@ const TextArea = ({ text, setText, }: { text: string, setText: Dispatch<SetState
         }
     }, [showSaveConfirmation]);
 
-    return (<div>
+    return (<div className="overflow-y-auto">
         <div className="flex justify-center">
             <div className=" flex w-full max-w-3xl">
                 <textarea
-                    className="w-full p-2 resize-none focus:outline-none focus:ring-0 focus:border-0 focus:shadow-none bg-transparent min-h-[300px] transition-all duration-200 text-gray-800 outline-none border-none"
+                    className="w-full p-2 resize-none focus:outline-none focus:ring-0 focus:border-0 focus:shadow-none bg-transparent h-screen transition-all duration-200 text-gray-800 outline-none border-none"
                     value={text}
                     onChange={(e) => setText(e.target.value)}
                     placeholder="Start writing..."
                     disabled={showSaveConfirmation}
-                    onInput={(e) => {
-                        const target = e.target as HTMLTextAreaElement;
-                        target.style.height = '300px';
-                        if (target.value.trim() !== "") {
-                            target.style.height = `${Math.max(300, target.scrollHeight)}px`;
-                        } else {
-                            target.style.height = '300px';
-                        }
-                    }}
                     style={{
                         border: 'none',
                         boxShadow: 'none',

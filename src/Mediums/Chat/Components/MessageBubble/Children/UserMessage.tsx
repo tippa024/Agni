@@ -1,6 +1,6 @@
 import { Message } from "@/Mediums/Chat/Utils/prompt&type";
 
-const UserMessageinChat = ({ message, font }: { message: Message, font: { className: string } }) => {
+const UserMessageinChat = function UserMessageinChat({ message, font }: { message: Message, font: { className: string } }) {
     return (
         <div className="flex justify-end p-2 border-red-500">
             <div className="max-w-2xl break-words font-stretch-expanded px-4 py-2">

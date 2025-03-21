@@ -48,11 +48,17 @@ export interface ChatActions {
       | conversationHistory[]
       | ((prev: conversationHistory[]) => conversationHistory[])
   ) => void;
+  setUserPreferences: (
+    userPreferences:
+      | UserPreferences
+      | ((prev: UserPreferences) => UserPreferences)
+  ) => void;
 }
 
 export interface Message {
   role: "user" | "assistant" | "system";
   content: string;
+  timestamp: string;
   sources?: SearchResult[];
   additionalInfo?: string;
 }
@@ -104,4 +110,12 @@ export const systemMessage: Message = {
     For complex topics, you ask thoughful questions to uncover/clarify the intent, and then you break down explanations into clear sections. 
     You use simple and straight forward language and note any uncertainties. If you are refereing to an information for a specific source, then please hyperlink it in your response. 
     For context, Today's date is ${new Date().toLocaleDateString()}`,
+  timestamp:
+    new Date().toLocaleDateString("en-GB") +
+    " " +
+    new Date().toLocaleTimeString([], {
+      hour: "2-digit",
+      minute: "2-digit",
+      second: "2-digit",
+    }),
 };

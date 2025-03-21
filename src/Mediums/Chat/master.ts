@@ -48,7 +48,7 @@ export async function handleRawUserInput(
     let contextualizedInput = userMessage;
 
     if (state.userPreferences.searchEnabled) {
-      actions.setCurrentProcessingStep("Search'in.");
+      actions.setCurrentProcessingStep("Searching...");
 
       {
         try {
@@ -62,9 +62,6 @@ export async function handleRawUserInput(
           )) as SearchOutput;
 
           const { sources, textOutput } = searchOutput;
-
-          console.log("sources", sources);
-          console.log("textOutput", textOutput);
 
           setMessage.SourcesToCurrent(sources, actions.setMessages);
 
@@ -106,7 +103,10 @@ export async function handleRawUserInput(
       );
       for await (const chunk of data.stream()) {
         content += chunk;
-        setMessage.UpdateAssistantContent(content, actions.setMessages);
+        setMessage.UpdateAssistantContentandTimeStamp(
+          content,
+          actions.setMessages
+        );
       }
       actions.setCurrentProcessingStep("");
       setConversationHistory.AddAssistantMessage(

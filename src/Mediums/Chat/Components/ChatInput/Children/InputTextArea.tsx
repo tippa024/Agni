@@ -1,6 +1,6 @@
-import { memo } from "react";
 
-export const InputTextArea = memo(function InputTextArea({
+
+export const InputTextArea = function InputTextArea({
     input,
     setInput,
     handleFormSubmit,
@@ -39,4 +39,4 @@ export const InputTextArea = memo(function InputTextArea({
             }}
         />
     )
-})
+}

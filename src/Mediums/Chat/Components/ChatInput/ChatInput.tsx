@@ -5,7 +5,7 @@ import { InputTextArea } from "./Children/InputTextArea";
 import { SendButton } from "./Children/SendButton";
 
 
-const UserInput = memo(function UserInput({
+const UserInput = function UserInput({
     input,
     userPreferences,
     font,
@@ -28,8 +28,7 @@ const UserInput = memo(function UserInput({
             onSubmit={handleFormSubmit}
             className="max-w-xl mx-auto"
         >
-            <div className="relative flex items-center gap-3 bg-white rounded-xl border border-[#4A4235]/15 shadow-sm hover:shadow-md transition-all duration-300 w-full group focus-within:border-[#4A4235]/30 focus-within:shadow-lg">
-                {/* Control Toggles */}
+            <div className="relative flex items-center gap-3 rounded-xl border border-[#4A4235]/15 shadow-sm hover:shadow-md transition-all duration-300 w-full group focus-within:border-[#4A4235]/30 focus-within:shadow-lg">
                 <UserPreferenceToggle
                     userPreferences={userPreferences}
                     setUserPreferences={setUserPreferences}
@@ -40,10 +39,13 @@ const UserInput = memo(function UserInput({
                     handleFormSubmit={handleFormSubmit}
                     font={font}
                 />
-                <SendButton input={input} />
+                <div>
+                    <SendButton input={input} />
+                </div>
+
             </div>
         </form>
     )
-});
+};
 
 export default UserInput;
