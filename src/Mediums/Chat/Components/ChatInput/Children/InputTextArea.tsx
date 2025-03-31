@@ -1,5 +1,4 @@
 
-
 export const InputTextArea = function InputTextArea({
     input,
     setInput,
@@ -11,6 +10,7 @@ export const InputTextArea = function InputTextArea({
     handleFormSubmit: (e: React.FormEvent) => void;
     font: { className: string };
 }) {
+
     return (
         <textarea
             value={input}

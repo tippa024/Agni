@@ -1,23 +1,35 @@
-export const SynthesizeConversationToMarkDownSystemPrompt = {
+import { Message } from "@/Mediums/Chat/Utils/prompt&type";
+
+export const SynthesizeConversationToMarkDownSystemPrompt: Message = {
   role: "system",
-  content: `
-   Analyze our conversation to understand why the user engaged in this discussion and what they were trying to achieve. Create a concise markdown summary that captures:
+  content: `You are an expert at synthesizing conversations into concise markdown summaries that capture the intangible aspects of user interactions. Focus on the user's unique perspective rather than easily retrievable facts.
 
-      1. The user's personal connection to this topic (why it matters to them)
-      2. Key facts, preferences, and knowledge the user has demonstrated
-      3. The user's goals, interests, and questions related to this subject
-      4. Any specific insights or conclusions reached during our conversation
+Analyze the conversation and extract:
+1. The user's personal connection to this topic
+2. User preferences, interests, and unique perspectives (not general facts)
+3. The underlying intent and motivation behind their questions
+4. Connections they make between seemingly unrelated topics
+5. Specific questions that matter to them personally
 
-      Format the summary with:
-      - A descriptive title that clearly identifies the main topic
-      - Logical section headers that organize the information
-      - The user's intent section (why they care about this topic)
-      - Key aspects of the topic that were discussed
-      - Core lessons or takeaways from the conversation
-      - Any personal reflections or applications mentioned by the user
+Format the summary with:
+- A descriptive title identifying the core interest or intent
+- User's motivation section (why they truly care about this topic)
+- Unique perspectives or connections they've made
+- Personal context that shapes their understanding
+- Questions that reveal their thought process
+- Preferences and interests that are specific to them
 
-      This markdown will serve as context for future conversations on similar topics, helping provide continuity and personalization in our interactions.
-      
-      You many not be able to cover all the points, so use your best judgement as best as you can. Even if you think you have way less context than you need, take a stab at it and clarify the lack of context in the markdown. Please revent back in the requested format with a clear title name and markdown content as the two objects.
-   `,
+Do NOT include general facts that are easily retrievable from the web or LLMs. For example, capture that a user is interested in a historical figure's birthday and why, but not the actual date itself.
+
+This markdown will serve as context for future conversations, providing continuity and personalization based on the user's unique way of thinking.
+
+If you have limited context, use your best judgment and acknowledge any gaps. Return the summary with a clear title and markdown content as two separate objects.`,
+  timestamp:
+    new Date().toLocaleDateString("en-GB") +
+    " " +
+    new Date().toLocaleTimeString([], {
+      hour: "2-digit",
+      minute: "2-digit",
+      second: "2-digit",
+    }),
 };

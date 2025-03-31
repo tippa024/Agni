@@ -18,7 +18,7 @@ export default function Home() {
     messages: [],
     userPreferences: {
       searchEnabled: false,
-      context: true,
+      context: false,
       model: ["gpt-4o-mini", "OpenAI"] as ["gpt-4o-mini", "OpenAI"] | ["claude-3-5-haiku-20241022", "Anthropic"] | ["claude-3-5-sonnet-20241022", "Anthropic"],
     },
     currentProcessingStep: "",
@@ -73,7 +73,7 @@ export default function Home() {
     <main className="flex flex-col min-h-screen w-screen bg-white">
       <Header location={location} locationOn={locationOn} mode={mode} setMode={setMode} />
       {mode === 'chat' ? <Chat chatState={chatState} chatActions={chatActions} /> : (
-        <div className='h-screen w-full bg-white'>
+        <div className=' bg-white'>
           <Text text={text} setText={setText} />
         </div>
       )

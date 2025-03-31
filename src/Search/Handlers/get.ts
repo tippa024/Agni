@@ -14,13 +14,11 @@ export const getSearch = async (
 
   if (searchProvider === "OpenPerplex") {
     currentProcessingStep("Starting OpenPerplex Search");
-    console.log(
-      "Getting search results from OpenPerplex",
+    console.log("Getting search results from OpenPerplex:", {
       query,
-      "with refimenmentNeeded",
-      refimenmentNeeded,
-      refimenmentNeeded ? { "and modelForRefinement": modelForRefinement } : {}
-    );
+      refinementNeeded: refimenmentNeeded,
+      ...(refimenmentNeeded && { modelForRefinement }),
+    });
     try {
       const response = await OpenPerplexAPI.Search(
         query,

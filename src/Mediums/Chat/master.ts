@@ -65,8 +65,6 @@ export async function handleRawUserInput(
 
           setMessage.SourcesToCurrent(sources, actions.setMessages);
 
-          setMessage.InitialiseNewAssistant(actions.setMessages);
-
           contextualizedInput = `${contextualisedInputPromptAfterSearch} users initial question: "${userMessage}". Search Results: ${JSON.stringify(
             sources
           )}Extracted Content: ${textOutput}`;

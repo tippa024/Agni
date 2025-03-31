@@ -43,6 +43,7 @@ export async function POST(req: NextRequest) {
       async start(controller) {
         for await (const chunk of response) {
           const text = chunk.choices[0]?.delta?.content || "";
+          console.log("OpenAI API route: text", text);
           controller.enqueue(encoder.encode(text));
         }
         controller.close();

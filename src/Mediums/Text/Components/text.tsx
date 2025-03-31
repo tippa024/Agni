@@ -1,6 +1,6 @@
 import { Dispatch, SetStateAction, useState } from "react";
-import HeaderOptions from "./HeaderOptions";
-import TextArea from "./TextArea";
+import HeaderOptions from "./Header/HeaderOptions";
+import TextArea from "./TextArea/TextArea";
 
 
 export default function Text({ text, setText }: { text: string, setText: Dispatch<SetStateAction<string>> }) {

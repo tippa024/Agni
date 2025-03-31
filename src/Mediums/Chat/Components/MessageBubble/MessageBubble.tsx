@@ -2,9 +2,8 @@
 import { Source_Serif_4 } from 'next/font/google';
 import { MessageBubbleProps } from '@/Mediums/Chat/Utils/prompt&type';
 import UserMessageinChat from './Children/UserMessage';
-import SearchResultsinChat from './Children/SearchResults';
 import AssistantMessageinChat from './Children/AssistantMessage/AssitantMessage';
-
+import CurrentStepAndTime from './Children/CurrentStep&Time';
 const sourceSerif4 = Source_Serif_4({
     subsets: ['latin'],
     weight: ['400', '600', '700'],
@@ -22,12 +21,11 @@ export const MessageBubble = function MessageBubble({
             <UserMessageinChat message={message} font={sourceSerif4} />
         )
     }
-    if (message.sources) {
-        return (
-            <SearchResultsinChat sources={message.sources} />
-        );
-    }
     return (
-        <AssistantMessageinChat message={message} messageComponentIndex={messageComponentIndex} currentProcessingStep={currentProcessingStep} font={sourceSerif4} />
+        <>
+            <CurrentStepAndTime messageComponentIndex={messageComponentIndex} currentProcessingStep={currentProcessingStep} font={sourceSerif4} timestamp={message.timestamp} />
+            <AssistantMessageinChat message={message} messageComponentIndex={messageComponentIndex} currentProcessingStep={currentProcessingStep} font={sourceSerif4} />
+        </>
     );
+
 };

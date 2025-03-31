@@ -1,10 +1,13 @@
 import { Dispatch, SetStateAction, useCallback, useEffect, useRef, useState } from "react";
 import { SynthesizeAPI } from "@/Context/Utils/Synthesize/apiCall";
 import { MarkdownAPI } from "@/Context/Utils/Markdown/apiCall";
-import { handleRawTextInput } from "../master";
+import { handleRawTextInput } from "../../master";
+
 
 
 const TextArea = ({ text, setText, }: { text: string, setText: Dispatch<SetStateAction<string>> }) => {
+
+
 
     const textAreaRef = useRef<HTMLTextAreaElement>(null);
 
@@ -17,61 +20,11 @@ const TextArea = ({ text, setText, }: { text: string, setText: Dispatch<SetState
         }
     }
 
-    const extractMessage = (text: string) => {
-        const regex = /\[\[(.*?)\]\]/g;
-        const matches = [];
-        let match;
-
-        while ((match = regex.exec(text)) !== null) {
-            matches.push(match[1]);
-        }
-
-        return matches.length > 0 ? matches[0] : text;
-    }
-
-    let contextMessage = "";
-
-    const extractAndRemoveMessage = (text: string) => {
-        const regex = /\[\[(.*?)\]\]/g;
-        const matches = [];
-        let match;
-        let extractedMessage = "";
-
-        while ((match = regex.exec(text)) !== null) {
-            matches.push(match[1]);
-        }
-
-        if (matches.length > 0) {
-            extractedMessage = matches[0];
-            // Remove the [[message]] from the text
-            const cleanedText = text.replace(/\[\[.*?\]\]/, "").trim();
-            setText(cleanedText);
-            contextMessage = cleanedText;
-            return extractedMessage;
-        }
-
-        return text;
-    }
-
-    const textstream = async () => {
-        const userQuestion = extractAndRemoveMessage(text);
-        const message = 'The context for this question is: ' + contextMessage + "\n\n" + 'The question is: ' + userQuestion + "your output should have a natural flow from the context and should also answer the question. Your answer will be appened to the context and that will form a new writting"
-        const response = await handleRawTextInput(message);
-        setText(prev => prev + "\n\n");
-        if (response) {
-            for await (const chunk of response.stream()) {
-                setText(prev => prev + chunk);
-            }
-            setText(prev => prev + "\n\n");
-        }
-    }
-
-
-    const handleKeyboardShortcuts = useCallback((e: KeyboardEvent) => {
+    const handleKeyboardShortcuts = useCallback(async (e: KeyboardEvent) => {
         // Save to Context Button toggle (Ctrl+B)
         if ((e.metaKey || e.ctrlKey) && e.key === 'b') {
             e.preventDefault();
-            textstream();
+            await handleRawTextInput(text, setText);
         }
 
 
@@ -120,11 +73,6 @@ const TextArea = ({ text, setText, }: { text: string, setText: Dispatch<SetState
                     onChange={(e) => setText(e.target.value)}
                     placeholder="Start writing..."
                     disabled={showSaveConfirmation}
-                    style={{
-                        border: 'none',
-                        boxShadow: 'none',
-                        fontFamily: 'inherit'
-                    }}
                 />
             </div>
         </div>

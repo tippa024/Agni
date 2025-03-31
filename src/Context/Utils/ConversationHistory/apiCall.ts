@@ -36,7 +36,7 @@ export const conversationHistoryAPI = {
   read: async () => {
     console.log("ReadConversationHistory API Call starting");
     try {
-      const response = await fetch(`/api/History/ConversationHistory/Read`);
+      const response = await fetch(`/api/Context/ConversationHistory/Read`);
       const data = await response.json();
       console.log("ReadConversationHistory API Response", data);
       // example of data is

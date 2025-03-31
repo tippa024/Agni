@@ -1,4 +1,4 @@
-import { Message } from "../../Chat/prompt&type";
+import { Message } from "@/Mediums/Chat/Utils/prompt&type";
 
 export const ChatSessionToMarkDownSystemMessage: Message = {
   role: "system",
@@ -22,4 +22,12 @@ export const ChatSessionToMarkDownSystemMessage: Message = {
       You many not be able to cover all the points, so use your best judgement as best as you can. Even if you think you have way less context than you need, take a stab at it and clarify the lack of context in the markdown. Please revent back in the requested format with a clear title name and markdown content as the two objects.
    
   `,
+  timestamp:
+    new Date().toLocaleDateString("en-GB") +
+    " " +
+    new Date().toLocaleTimeString([], {
+      hour: "2-digit",
+      minute: "2-digit",
+      second: "2-digit",
+    }),
 };

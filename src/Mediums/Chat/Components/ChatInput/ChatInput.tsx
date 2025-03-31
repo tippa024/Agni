@@ -1,4 +1,3 @@
-import { memo } from "react";
 import { ChatInputProps } from "@/Mediums/Chat/Utils/prompt&type";
 import { UserPreferenceToggle } from "./Children/UserPreferenceToggle";
 import { InputTextArea } from "./Children/InputTextArea";
@@ -18,17 +17,15 @@ const UserInput = function UserInput({
     const handleFormSubmit = (e: React.FormEvent) => {
         e.preventDefault(); //still not sure if this is needed, but it's here to be safe
         if (!input.trim()) return;
-
-        console.log('Chat Input Received:', { userQuery: input.trim(), searchEnabled: userPreferences.searchEnabled, model: userPreferences.model[0], });
+        console.log('Chat Input Received:', { userQuery: input.trim(), userPreferences });
         handleSubmit(e);
     };
 
     return (
         <form
             onSubmit={handleFormSubmit}
-            className="max-w-xl mx-auto"
         >
-            <div className="relative flex items-center gap-3 rounded-xl border border-[#4A4235]/15 shadow-sm hover:shadow-md transition-all duration-300 w-full group focus-within:border-[#4A4235]/30 focus-within:shadow-lg">
+            <div className={`relative flex items-center gap-3 rounded-xl border ${userPreferences.context ? 'border-gray-300 focus-within:border-gray-500' : 'border-gray-100 focus-within:border-gray-200 '} shadow-sm hover:shadow-md focus-within:shadow-lg transition-all duration-300 w-full group`}>
                 <UserPreferenceToggle
                     userPreferences={userPreferences}
                     setUserPreferences={setUserPreferences}
@@ -39,10 +36,7 @@ const UserInput = function UserInput({
                     handleFormSubmit={handleFormSubmit}
                     font={font}
                 />
-                <div>
-                    <SendButton input={input} />
-                </div>
-
+                <SendButton input={input} />
             </div>
         </form>
     )
