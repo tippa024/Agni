@@ -87,7 +87,10 @@ export async function handleRawUserInput(
 
     try {
       actions.setCurrentProcessingStep("Starting final response");
+
       let content = "";
+      let updateTimeout;
+
       const data = await getModelStream(
         state.userPreferences.model[1],
         {
@@ -99,14 +102,22 @@ export async function handleRawUserInput(
         },
         actions.setCurrentProcessingStep
       );
+
+     
       for await (const chunk of data.stream()) {
         content += chunk;
-        setMessage.UpdateAssistantContentandTimeStamp(
-          content,
-          actions.setMessages
-        );
-      }
+        clearTimeout(updateTimeout);
+        updateTimeout = setTimeout(() => {
+          setMessage.UpdateAssistantContentandTimeStamp(
+            content,
+            actions.setMessages
+          );
+          }, 5);
+        }
+   
+
       actions.setCurrentProcessingStep("");
+
       setConversationHistory.AddAssistantMessage(
         content,
         state.userPreferences.model[0],

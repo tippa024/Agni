@@ -1,4 +1,4 @@
-import { useRef, useEffect } from "react";
+import { useRef, useEffect, useState } from "react";
 import UserInput from "./ChatInput/ChatInput";
 import { ChatActions, ChatState } from "../Utils/prompt&type";
 import { handleRawUserInput } from "../master";
@@ -19,6 +19,8 @@ interface ChatProps {
 }
 
 export default function Chat({ chatState, chatActions }: ChatProps) {
+
+
     const onSubmit = async (e: React.FormEvent) => {
         await handleRawUserInput(
             e,

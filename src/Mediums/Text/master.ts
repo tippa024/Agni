@@ -18,14 +18,13 @@ export const handleRawTextInput = async (
   const extractAndRemoveMessage = (text: string) => {
     const regex = /\[\[(.*?)\]\]/g; // Regex to match text inside [[ ]]
     const matches = [];
-    let match: RegExpExecArray | null;
+    let match: RegExpExecArray | null = null;
     let extractedMessage = "";
 
     // Find all matches of text inside [[ ]] and store them
     while ((match = regex.exec(text)) !== null) {
-      matches.push(match[1]);
-      console.log("match 0", match[0]);
-      console.log("match 1", match[1]);
+      console.log("match", match);
+      matches.push(match[0]);
       console.log("matches", matches);
     }
 
@@ -35,8 +34,9 @@ export const handleRawTextInput = async (
     }
 
     if (matches.length > 0) {
-      extractedMessage = matches[0]; // Take the first match
-      const cleanedText = text.replace(/\[\[.*?\]\]/, "").trim(); // Remove the first bracketed text
+      console.log("matches before assignment", matches);
+      extractedMessage = matches.join(""); // Join all matches into a single string
+      const cleanedText = text.replace(/\[\[.*?\]\]/g, "").trim(); // Remove all bracketed text
       setText(cleanedText); // Update UI with text without brackets
       contextMessage = cleanedText; // Store as context for the conversation
       return extractedMessage; // Return the extracted message
@@ -64,6 +64,8 @@ export const handleRawTextInput = async (
       Message
     : input;
 
+  console.log("finalMessage", finalMessage);
+
   // Get the model stream
   const response = await getModelStream(
     "OpenAI",
@@ -72,7 +74,7 @@ export const handleRawTextInput = async (
       systemMessage: SystemMessageForText.content,
       conversationHistory: [],
       model: "gpt-4o-mini",
-      context: true,
+      context: false,
     },
     () => {
       // We'll handle streaming in the return object

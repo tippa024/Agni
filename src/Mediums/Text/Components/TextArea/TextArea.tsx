@@ -3,11 +3,7 @@ import { SynthesizeAPI } from "@/Context/Utils/Synthesize/apiCall";
 import { MarkdownAPI } from "@/Context/Utils/Markdown/apiCall";
 import { handleRawTextInput } from "../../master";
 
-
-
 const TextArea = ({ text, setText, }: { text: string, setText: Dispatch<SetStateAction<string>> }) => {
-
-
 
     const textAreaRef = useRef<HTMLTextAreaElement>(null);
 
@@ -21,12 +17,11 @@ const TextArea = ({ text, setText, }: { text: string, setText: Dispatch<SetState
     }
 
     const handleKeyboardShortcuts = useCallback(async (e: KeyboardEvent) => {
-        // Save to Context Button toggle (Ctrl+B)
+        //(Ctrl+B)
         if ((e.metaKey || e.ctrlKey) && e.key === 'b') {
             e.preventDefault();
             await handleRawTextInput(text, setText);
         }
-
 
         // Open save confirmation (Ctrl+Enter)
         if ((e.metaKey || e.ctrlKey) && e.code === 'Enter') {
@@ -64,15 +59,27 @@ const TextArea = ({ text, setText, }: { text: string, setText: Dispatch<SetState
         }
     }, [showSaveConfirmation]);
 
+    const [showBackUpBackground, setShowBackUpBackground] = useState(false);
+
+    const handleTextChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
+        setText(e.target.value);
+        // Check if the last character typed is '@'
+        setShowBackUpBackground(e.target.value.endsWith('@'));
+    };
+
     return (<div className="overflow-y-auto">
         <div className="flex justify-center">
             <div className=" flex w-full max-w-3xl">
                 <textarea
-                    className="w-full p-2 resize-none focus:outline-none focus:ring-0 focus:border-0 focus:shadow-none bg-transparent h-screen transition-all duration-200 text-gray-800 outline-none border-none"
+                    className={`w-full p-2 resize-none focus:outline-none focus:ring-0 focus:border-0 focus:shadow-none bg-transparent h-screen transition-all duration-200 text-gray-800 outline-none border-none ${showBackUpBackground ? 'bg-gray-500' : 'bg-white'}`}
                     value={text}
-                    onChange={(e) => setText(e.target.value)}
+                    onChange={(e) => {
+                        setText(e.target.value);
+                        handleTextChange(e);
+                    }}
                     placeholder="Start writing..."
                     disabled={showSaveConfirmation}
+                    ref={textAreaRef}
                 />
             </div>
         </div>

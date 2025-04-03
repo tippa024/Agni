@@ -1,10 +1,11 @@
-import { Dispatch, SetStateAction, useState } from "react";
+import { useState } from "react";
 import HeaderOptions from "./Header/HeaderOptions";
 import TextArea from "./TextArea/TextArea";
 
 
-export default function Text({ text, setText }: { text: string, setText: Dispatch<SetStateAction<string>> }) {
+export default function Text() {
 
+    const [text, setText] = useState("");
 
     return <div className="flex flex-col h-screen">
         <HeaderOptions text={text} setText={setText} />

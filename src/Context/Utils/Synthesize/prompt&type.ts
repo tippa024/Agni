@@ -2,7 +2,7 @@ import { Message } from "@/Mediums/Chat/Utils/prompt&type";
 
 export const SynthesizeConversationToMarkDownSystemPrompt: Message = {
   role: "system",
-  content: `You are an expert at synthesizing conversations into concise markdown summaries that capture the intangible aspects of user interactions. Focus on the user's unique perspective rather than easily retrievable facts.
+  content: `You are an expert at synthesizing conversations into concise markdown summaries that capture the intangible aspects of user interactions. Focus on the user's unique perspective rather than easily retrievable facts. This is for a knowledge graph of the user's interests, thoughts and ideas.
 
 Analyze the conversation and extract:
 1. The user's personal connection to this topic

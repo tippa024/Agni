@@ -37,24 +37,53 @@ export async function POST(req: NextRequest) {
       max_tokens: 1000,
     });
 
+    {
+      /*
     // Create a TransformStream to handle the streaming
     const encoder = new TextEncoder();
     const stream = new ReadableStream({
       async start(controller) {
         for await (const chunk of response) {
-          const text = chunk.choices[0]?.delta?.content || "";
-          console.log("OpenAI API route: text", text);
-          controller.enqueue(encoder.encode(text));
+          const text = chunk.choices[0]?.delta?.content;
+          if (text) {
+            const encodedText = encoder.encode(text);
+            controller.enqueue(encodedText);
+            console.log("OpenAI API route - enque value:", encodedText);
+          }
         }
         controller.close();
       },
     });
+  */
+    }
+
+    const { readable, writable } = new TransformStream();
+    const encoder = new TextEncoder();
+    const writer = writable.getWriter();
+    (async () => {
+      try {
+        for await (const chunk of response) {
+          const text = chunk.choices[0]?.delta?.content;
+          if (text) {
+            const encoded = encoder.encode(text);
+            await writer.write(encoded);
+          }
+        }
+      } catch (error) {
+        console.error("Stream error:", error);
+      } finally {
+        await writer.close();
+      }
+    })();
 
     console.log("OpenAI API route: returning stream");
 
-    return new Response(stream, {
+    return new Response(readable, {
       headers: {
         "Content-Type": "text/plain; charset=utf-8",
+        "Transfer-Encoding": "chunked",
+        "X-Content-Type-Options": "nosniff",
+        "Cache-Control": "no-cache, no-transform",
       },
     });
   } catch (error: any) {

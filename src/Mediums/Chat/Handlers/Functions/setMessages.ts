@@ -1,7 +1,10 @@
-import { ChatActions, SearchResult } from "../../Utils/prompt&type";
+import { ChatActions, SearchResult, Message } from "../../Utils/prompt&type";
+import { Dispatch, SetStateAction } from "react";
 
 export const setMessage = {
-  InitialiseNewAssistant: function (setMessages: ChatActions["setMessages"]) {
+  InitialiseNewAssistant: function (
+    setMessages: Dispatch<SetStateAction<Message[]>>
+  ) {
     setMessages((prev) => [
       ...prev,
       {
@@ -21,22 +24,23 @@ export const setMessage = {
 
   UpdateAssistantContentandTimeStamp: function (
     content: string,
-    setMessages: ChatActions["setMessages"]
+    setMessages: Dispatch<SetStateAction<Message[]>>
   ) {
+    const currentTime =
+      new Date().toLocaleDateString("en-GB") +
+      " " +
+      new Date().toLocaleTimeString([], {
+        hour: "2-digit",
+        minute: "2-digit",
+        second: "2-digit",
+      });
     setMessages((prev) => {
       return prev.map((msg, index) => {
         if (index === prev.length - 1 && msg.role === "assistant") {
           return {
             ...msg,
             content: content,
-            timestamp:
-              new Date().toLocaleDateString("en-GB") +
-              " " +
-              new Date().toLocaleTimeString([], {
-                hour: "2-digit",
-                minute: "2-digit",
-                second: "2-digit",
-              }),
+            timestamp: currentTime,
           };
         }
         return msg;
@@ -47,7 +51,7 @@ export const setMessage = {
   NewRoleAndContent: function (
     role: "user" | "assistant",
     content: string,
-    setMessages: ChatActions["setMessages"]
+    setMessages: Dispatch<SetStateAction<Message[]>>
   ) {
     setMessages((prev) => [
       ...prev,
@@ -68,7 +72,7 @@ export const setMessage = {
 
   SourcesToCurrent: function (
     sources: SearchResult[],
-    setMessages: ChatActions["setMessages"]
+    setMessages: Dispatch<SetStateAction<Message[]>>
   ) {
     setMessages((prev) => {
       const newMessages = [...prev];

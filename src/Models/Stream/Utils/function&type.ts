@@ -30,22 +30,17 @@ export async function createStreamFromResponse(
       while (true) {
         const { done, value } = await reader.read();
         if (done) break;
-
         const chunk = decoder.decode(value, { stream: true });
-        if (chunk.trim()) {
-          // Call the callback if provided
+        if (chunk) {
           if (onChunk) onChunk(chunk);
-
-          // Yield the chunk for streaming
           yield chunk;
         }
       }
-      console.log("Stream finished");
     } catch (streamError) {
       console.error("Error during streaming:", streamError);
       throw streamError;
     } finally {
-      reader.releaseLock();
+      reader?.releaseLock();
     }
   };
 

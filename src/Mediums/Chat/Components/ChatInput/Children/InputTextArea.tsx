@@ -1,5 +1,8 @@
+import { useMemo, memo } from "react";
+import { useEffect } from "react";
+import { useState } from "react";
 
-export const InputTextArea = function InputTextArea({
+export const InputTextArea = memo(function InputTextArea({
     input,
     setInput,
     handleFormSubmit,
@@ -11,6 +14,13 @@ export const InputTextArea = function InputTextArea({
     font: { className: string };
 }) {
 
+    const [count, setCount] = useState(0);
+    const [inputValue, setInputValue] = useState('');
+
+    useEffect(() => {
+        setCount(count + 1);
+    }, [inputValue]);
+
     return (
         <textarea
             value={input}
@@ -20,6 +30,7 @@ export const InputTextArea = function InputTextArea({
                     e.preventDefault();
                     handleFormSubmit(e);
                     e.currentTarget.style.height = '48px';
+                    setInput('');
                 }
             }}
             placeholder="What's on your mind?"
@@ -40,3 +51,4 @@ export const InputTextArea = function InputTextArea({
         />
     )
 }
+) 

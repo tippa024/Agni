@@ -30,6 +30,7 @@ export async function getModelStream(
   const userMessage = params.userMessage;
   const systemMessage = params.systemMessage;
   let messagesForModel: Message[] = [];
+
   if (params.conversationHistory) {
     messagesForModel = [
       ...StreamlineConversationForAPI(params.conversationHistory),
@@ -38,45 +39,23 @@ export async function getModelStream(
   } else {
     messagesForModel = [{ role: "user", content: userMessage }] as Message[];
   }
+  currentProcessingStep(`${provider} response`);
+  
+  console.log(`Starting ${provider} API call function`);
+  try {
+    const data = await streamTextAPI[provider as keyof typeof streamTextAPI](
+      systemMessage,
+      messagesForModel,
+      model
+    );
 
-  if (provider === "Anthropic") {
-    currentProcessingStep("Anthropic response");
-    console.log("Starting Anthropic API call function");
-    try {
-      const data = await streamTextAPI.Anthropic(
-        systemMessage,
-        messagesForModel,
-        model
-      );
-
-      console.log("Anthropic API call function success");
-      return {
-        stream: () => data.stream(),
-        getText: async () => await data.getText(),
-      };
-    } catch (error) {
-      console.error("Error in Anthropic streaming:", error);
-      throw error;
-    }
+    console.log(`${provider} API call function success`);
+    return {
+      stream: () => data.stream(),
+      getText: async () => await data.getText(),
+    };
+  } catch (error) {
+    console.error(`Error in ${provider} streaming:`, error);
+    throw error;
   }
-  if (provider === "OpenAI") {
-    currentProcessingStep("OpenAI response");
-    console.log("Starting OpenAI API call function");
-    try {
-      const data = await streamTextAPI.OpenAI(
-        systemMessage,
-        messagesForModel,
-        model
-      );
-      console.log("OpenAI API call function success");
-      return {
-        stream: () => data.stream(),
-        getText: async () => await data.getText(),
-      };
-    } catch (error) {
-      console.error("Error in OpenAI streaming:", error);
-      throw error;
-    }
-  }
-  throw new Error(`Unsupported provider: ${provider}`);
 }

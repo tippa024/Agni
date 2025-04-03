@@ -16,7 +16,12 @@ export default function Header({ locationOn, mode, setMode, location }: { locati
         <div className='flex justify-between items-center border'>
             <div className='flex-1 flex justify-start'>
                 <button
-                    onClick={() => getLocation()}
+                    onClick={() => {
+                        getLocation();
+                        if (locationOn) {
+                            window.open(`https://www.google.com/maps?q=${location.latitude},${location.longitude}`, '_blank');
+                        }
+                    }}
                     className={`px-3 py-1.5 opacity-20 hover:opacity-80 transition-colors duration-200 text-[#4A4235]  text-sm ${locationOn ? 'font-mono' : 'font-medium'}`}>
                     {locationOn ? `${location.latitude.toFixed(2)}°N ${location.longitude.toFixed(2)}°E` : 'Location'}
                 </button>

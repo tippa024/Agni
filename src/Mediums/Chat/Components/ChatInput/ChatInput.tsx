@@ -1,10 +1,12 @@
+import { memo } from "react";
 import { ChatInputProps } from "@/Mediums/Chat/Utils/prompt&type";
 import { UserPreferenceToggle } from "./Children/UserPreferenceToggle";
 import { InputTextArea } from "./Children/InputTextArea";
 import { SendButton } from "./Children/SendButton";
+import { handleRawUserInput } from "../../master";
 
 
-const UserInput = function UserInput({
+const UserInput = memo(function UserInput({
     input,
     userPreferences,
     font,
@@ -40,6 +42,6 @@ const UserInput = function UserInput({
             </div>
         </form>
     )
-};
+});
 
 export default UserInput;

@@ -23,7 +23,7 @@ export const streamTextAPI = {
     messages: Message[],
     model: string
   ): Promise<StreamResponse> => {
-    console.log("Starting OpenAI API call");
+    console.log("Starting OpenAI API call", messages);
     const response = await fetch("/api/Models/OpenAI/Chat", {
       method: "POST",
       headers: { "Content-Type": "application/json" },

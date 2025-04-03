@@ -1,14 +1,17 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, Dispatch, SetStateAction } from 'react';
 import Text from "@/Mediums/Text/Components/text";
 import { getLocation } from "./location";
 import Chat from "@/Mediums/Chat/Components/chat";
-import ChatBackUp from "./components/Chat_BackUp/Chat";
 import Header from "./components/Header";
+import { ChatActions, ChatState, Message } from "@/Mediums/Chat/Utils/prompt&type";
 
-import { ChatState, ChatActions, UserPreferences, Message, conversationHistory } from "@/Mediums/Chat/Utils/prompt&type";
-
+interface ChatProps {
+  location: { latitude: number, longitude: number };
+  messages: Message[];
+  setMessages: Dispatch<SetStateAction<Message[]>>;
+}
 
 export default function Home() {
   const [mode, setMode] = useState<'chat' | 'text'>('chat');
@@ -49,7 +52,7 @@ export default function Home() {
     }))
   };
 
-  const [text, setText] = useState("");
+
 
   const [locationOn, setLocationOn] = useState<boolean>(false);
   const [location, setLocation] = useState<{ latitude: number, longitude: number }>({ latitude: 0, longitude: 0 });
@@ -59,7 +62,6 @@ export default function Home() {
       const userLocation = await getLocation();
       if (userLocation) {
         setLocation(userLocation);
-        setChatState({ ...chatState, location: userLocation });
         setLocationOn(true);
       } else {
         console.log("Could not get user location");
@@ -74,7 +76,7 @@ export default function Home() {
       <Header location={location} locationOn={locationOn} mode={mode} setMode={setMode} />
       {mode === 'chat' ? <Chat chatState={chatState} chatActions={chatActions} /> : (
         <div className=' bg-white'>
-          <Text text={text} setText={setText} />
+          <Text />
         </div>
       )
       }
