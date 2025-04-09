@@ -4,7 +4,7 @@ export interface ChatInputProps {
   input: string;
   userPreferences: UserPreferences;
   font: { className: string };
-  handleSubmit: (e: React.FormEvent) => void;
+  onSubmit: (e: React.FormEvent) => void;
   setInput: (input: string) => void;
   setUserPreferences: Dispatch<SetStateAction<UserPreferences>>;
 }
@@ -41,7 +41,6 @@ export interface ChatState {
 
 export interface ChatActions {
   setMessages: (messages: Message[] | ((prev: Message[]) => Message[])) => void;
-  setInput: (input: string) => void;
   setCurrentProcessingStep: (currentProcessingStep: string) => void;
   setConversationHistory: (
     history:

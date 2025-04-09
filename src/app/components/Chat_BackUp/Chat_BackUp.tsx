@@ -2,8 +2,8 @@
 
 import { useState, useRef, useEffect } from 'react';
 import { Source_Serif_4 } from 'next/font/google';
-import { MessageBubble } from "./MessageBubble";
-import { UserInput } from "./ChatInput";
+import { MessageBubble } from "./MessageBubble_Backup";
+import { UserInput } from "./ChatInput_BackUp";
 import { handleRawUserInput } from "@/Mediums/Chat/master";
 import { ChatState, Message, UserPreferences, conversationHistory } from "@/Mediums/Chat/Utils/prompt&type";
 import { conversationHistoryAPI } from "@/Context/Utils/ConversationHistory/apiCall";
@@ -65,6 +65,7 @@ export default function ChatBackUp() {
                 setInput,
                 setCurrentProcessingStep,
                 setConversationHistory,
+                setUserPreferences,
             }
         );
     };
@@ -133,7 +134,6 @@ export default function ChatBackUp() {
                                                     currentProcessingStep :
                                                     ''
                                             }
-                                            userPreferences={userPreferences}
                                         />
                                     </div>
                                 ))}

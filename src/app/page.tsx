@@ -5,16 +5,24 @@ import Text from "@/Mediums/Text/Components/text";
 import { getLocation } from "./location";
 import Chat from "@/Mediums/Chat/Components/chat";
 import Header from "./components/Header";
-import { ChatActions, ChatState, Message } from "@/Mediums/Chat/Utils/prompt&type";
+import { ChatActions, ChatState, Message, UserPreferences, conversationHistory } from "@/Mediums/Chat/Utils/prompt&type";
 
-interface ChatProps {
-  location: { latitude: number, longitude: number };
-  messages: Message[];
-  setMessages: Dispatch<SetStateAction<Message[]>>;
-}
+
+console.log("Page Rendered");
 
 export default function Home() {
   const [mode, setMode] = useState<'chat' | 'text'>('chat');
+
+  const [input, setInput] = useState("");
+  const [messages, setMessages] = useState<Message[]>([]);
+  const [userPreferences, setUserPreferences] = useState<UserPreferences>({
+    searchEnabled: false,
+    context: false,
+    model: ["gpt-4o-mini", "OpenAI"] as ["gpt-4o-mini", "OpenAI"] | ["claude-3-5-haiku-20241022", "Anthropic"] | ["claude-3-5-sonnet-20241022", "Anthropic"],
+  });
+  const [currentProcessingStep, setCurrentProcessingStep] = useState("");
+  const [conversationHistory, setConversationHistory] = useState<conversationHistory[]>([]);
+
 
   const [chatState, setChatState] = useState<ChatState>({
     input: "",
@@ -74,7 +82,7 @@ export default function Home() {
   return (
     <main className="flex flex-col min-h-screen w-screen bg-white">
       <Header location={location} locationOn={locationOn} mode={mode} setMode={setMode} />
-      {mode === 'chat' ? <Chat chatState={chatState} chatActions={chatActions} /> : (
+      {mode === 'chat' ? <Chat input={input} messages={messages} userPreferences={userPreferences} currentProcessingStep={currentProcessingStep} conversationHistory={conversationHistory} location={location} setMessages={setMessages} setInput={setInput} setCurrentProcessingStep={setCurrentProcessingStep} setConversationHistory={setConversationHistory} setUserPreferences={setUserPreferences} /> : (
         <div className=' bg-white'>
           <Text />
         </div>

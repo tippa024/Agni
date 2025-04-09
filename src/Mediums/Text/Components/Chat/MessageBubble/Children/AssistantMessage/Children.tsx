@@ -1,5 +1,5 @@
 import MarkdownRenderer from "@/app/components/render";
-import { useEffect, useState } from "react";
+import { useState } from "react";
 
 export const Reasoning = ({ content, isCollapsed, setIsCollapsed, wordCount }: { content: string, isCollapsed: boolean, setIsCollapsed: (isCollapsed: boolean) => void, wordCount: number }) => {
     return (
@@ -34,20 +34,6 @@ export const Reasoning = ({ content, isCollapsed, setIsCollapsed, wordCount }: {
 }
 
 export const TextOutput = ({ content, thinkingVisible }: { content: string, thinkingVisible: boolean }) => {
-    const [prevContent, setPrevContent] = useState(content);
-    const [prevThinkingVisible, setPrevThinkingVisible] = useState(thinkingVisible);
-
-    useEffect(() => {
-        if (content !== prevContent) {
-            setPrevContent(content);
-        } else if (thinkingVisible !== prevThinkingVisible) {
-            setPrevThinkingVisible(thinkingVisible);
-        } else {
-            console.log("Text Output Rendered for unknown reason", Date.now());
-        }
-    }, [content, thinkingVisible, prevContent, prevThinkingVisible]);
-
-
     return (
         <div className="space-y-4">
             {thinkingVisible && <div className="h-px bg-[#2C2C2C]/10" />}

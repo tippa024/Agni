@@ -6,19 +6,6 @@ import { Message } from "@/Mediums/Chat/Utils/prompt&type";
 
 
 const AssistantMessageinChat = function AssistantMessageinChat({ message, messageComponentIndex, currentProcessingStep, font }: { message: Message, messageComponentIndex: number, currentProcessingStep: string | undefined, font: { className: string } }) {
-    const [prevMessage, setPrevMessage] = useState(message);
-    const [prevProcessingStep, setPrevProcessingStep] = useState(currentProcessingStep);
-
-    useEffect(() => {
-        if (message !== prevMessage) {
-            setPrevMessage(message);
-        } else if (currentProcessingStep !== prevProcessingStep) {
-            setPrevProcessingStep(currentProcessingStep);
-        } else {
-            console.log("Assistant Message in Chat Rendered for unknown reason", Date.now());
-        }
-    }, [message, currentProcessingStep, prevMessage, prevProcessingStep]);
-
 
     const [isThinkingCollapsed, setIsThinkingCollapsed] = useState(true);
     const [segmentedMessageContent, setSegmentedMessageContent] = useState<{ thinking?: string; answer?: string }>({});

@@ -1,12 +1,21 @@
-import { memo } from "react";
+import { memo, useEffect, useState } from "react";
 
-export const SendButton = memo(function SendButton({ input }: { input: string }) {
+const SendButton = memo(function SendButton({ showSendButton }: { showSendButton: boolean }) {
+    const [prevShowSendButton, setPrevShowSendButton] = useState(showSendButton);
+    useEffect(() => {
+        if (showSendButton !== prevShowSendButton) {
+        } else {
+            console.log("Send Button Rendered for unknown reason", Date.now());
+        }
+        setPrevShowSendButton(showSendButton);
+    }, [showSendButton, prevShowSendButton]);
+
     return (
         <div className="transition-all duration-300 ease-out opacity-0 scale-90 origin-center"
             style={{
-                opacity: input.trim() ? 1 : 0,
-                transform: input.trim() ? 'scale(1)' : 'scale(0.9)',
-                transitionDuration: input.trim() ? '300ms' : '150ms'
+                opacity: showSendButton ? 1 : 0,
+                transform: showSendButton ? 'scale(1)' : 'scale(0.9)',
+                transitionDuration: showSendButton ? '300ms' : '150ms'
             }}>
             <button
                 type="submit"
@@ -20,3 +29,5 @@ export const SendButton = memo(function SendButton({ input }: { input: string })
         </div>
     );
 });
+
+export default SendButton;

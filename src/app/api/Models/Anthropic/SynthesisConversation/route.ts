@@ -53,7 +53,7 @@ export async function POST(req: NextRequest) {
               filename: {
                 type: "string",
                 description:
-                  "A descriptive filename for the markdown document (without extension)",
+                  "A descriptive yet concise filename (adhering to markdown file naming conventions) for the markdown document (without extension)",
               },
               content: {
                 type: "string",

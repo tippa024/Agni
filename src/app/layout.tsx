@@ -28,6 +28,12 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en" className={inter.className}>
+      <head>
+        {/* Add the React DevTools script here */}
+        {process.env.NODE_ENV === 'development' && (
+          <script src="http://localhost:8097"></script>
+        )}
+      </head>
       <body>
         <main>
           {children}

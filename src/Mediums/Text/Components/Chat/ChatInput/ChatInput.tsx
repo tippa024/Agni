@@ -1,40 +1,27 @@
-import { memo, useCallback, useEffect, useState } from "react";
+import { memo } from "react";
 import { ChatInputProps } from "@/Mediums/Chat/Utils/prompt&type";
-import UserPreferenceToggle from "./Children/UserPreferenceToggle";
-import InputTextArea from "./Children/InputTextArea";
-import SendButton from "./Children/SendButton";
+import { UserPreferenceToggle } from "./Children/UserPreferenceToggle";
+import { InputTextArea } from "./Children/InputTextArea";
+import { SendButton } from "./Children/SendButton";
+import { handleRawUserInput } from "../../master";
 
 
 const UserInput = memo(function UserInput({
     input,
     userPreferences,
     font,
-    onSubmit,
+    handleSubmit,
     setInput,
     setUserPreferences,
 }: ChatInputProps) {
-    const [prevInput, setPrevInput] = useState(input);
-    const [prevUserPreferences, setPrevUserPreferences] = useState(userPreferences);
 
-    useEffect(() => {
-        if (input !== prevInput) {
-            setPrevInput(input);
-        } else if (JSON.stringify(userPreferences) !== JSON.stringify(prevUserPreferences)) {
-            setPrevUserPreferences(userPreferences);
-        } else {
-            console.log("User Input Rendered for unknown reason", Date.now());
-        }
-    }, [input, userPreferences, prevInput, prevUserPreferences]);
 
-    const [showSendButton, setShowSendButton] = useState(false);
-
-    const handleFormSubmit = useCallback((e: React.FormEvent) => {
+    const handleFormSubmit = (e: React.FormEvent) => {
         e.preventDefault(); //still not sure if this is needed, but it's here to be safe
         if (!input.trim()) return;
         console.log('Chat Input Received:', { userQuery: input.trim(), userPreferences });
-        onSubmit(e);
-        setInput('');
-    }, [onSubmit, input, setInput]);
+        handleSubmit(e);
+    };
 
     return (
         <form
@@ -50,9 +37,8 @@ const UserInput = memo(function UserInput({
                     setInput={setInput}
                     handleFormSubmit={handleFormSubmit}
                     font={font}
-                    inputNull={(isInputNull) => setShowSendButton(!isInputNull)}
                 />
-                <SendButton showSendButton={showSendButton} />
+                <SendButton input={input} />
             </div>
         </form>
     )

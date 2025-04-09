@@ -1,25 +1,25 @@
-import { memo, useEffect, useState } from "react";
+import { useMemo, memo } from "react";
+import { useEffect } from "react";
+import { useState } from "react";
 
-
-const InputTextArea = memo(function InputTextArea({
+export const InputTextArea = memo(function InputTextArea({
     input,
     setInput,
     handleFormSubmit,
     font,
-    inputNull,
 }: {
     input: string;
     setInput: (input: string) => void;
     handleFormSubmit: (e: React.FormEvent) => void;
     font: { className: string };
-    inputNull: (isInputNull: boolean) => void;
 }) {
 
-
+    const [count, setCount] = useState(0);
+    const [inputValue, setInputValue] = useState('');
 
     useEffect(() => {
-        inputNull(!input.trim());
-    }, [input]);
+        setCount(count + 1);
+    }, [inputValue]);
 
     return (
         <textarea
@@ -30,6 +30,7 @@ const InputTextArea = memo(function InputTextArea({
                     e.preventDefault();
                     handleFormSubmit(e);
                     e.currentTarget.style.height = '48px';
+                    setInput('');
                 }
             }}
             placeholder="What's on your mind?"
@@ -50,6 +51,4 @@ const InputTextArea = memo(function InputTextArea({
         />
     )
 }
-)
-
-export default InputTextArea;
+) 

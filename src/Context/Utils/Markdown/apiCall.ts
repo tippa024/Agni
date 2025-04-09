@@ -69,19 +69,19 @@ export const MarkdownAPI = {
     }
   },
 
-  WriteNewToContext: async (filename: string, content: string) => {
+  WriteNewToContext: async (content: string, filename?: string) => {
     if (content === "") {
       console.log(
         "Content received by WriteNewToContext API is empty, skipping write"
       );
       return;
     }
-    if (filename === "") {
+    if (!filename) {
       filename = `Context_${new Date()
         .toLocaleString("en-IN", { timeZone: "Asia/Kolkata" })
         .replace(/[/:\s]/g, "-")}`;
       console.log(
-        "Filename received by WriteNewToContext API is empty, using boilerplate filename",
+        "Filename is not provided, using current timestamp as filename",
         filename
       );
     }

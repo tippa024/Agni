@@ -31,7 +31,6 @@ export async function handleRawUserInput(
   if (!state.input.trim()) return;
 
   const userMessage = state.input.trim();
-  actions.setInput("");
 
   setMessage.NewRoleAndContent("user", userMessage, actions.setMessages);
 
@@ -103,7 +102,6 @@ export async function handleRawUserInput(
         actions.setCurrentProcessingStep
       );
 
-     
       for await (const chunk of data.stream()) {
         content += chunk;
         clearTimeout(updateTimeout);
@@ -112,9 +110,8 @@ export async function handleRawUserInput(
             content,
             actions.setMessages
           );
-          }, 5);
-        }
-   
+        }, 5);
+      }
 
       actions.setCurrentProcessingStep("");
 

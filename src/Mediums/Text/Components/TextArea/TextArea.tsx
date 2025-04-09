@@ -2,8 +2,10 @@ import { Dispatch, SetStateAction, useCallback, useEffect, useRef, useState } fr
 import { SynthesizeAPI } from "@/Context/Utils/Synthesize/apiCall";
 import { MarkdownAPI } from "@/Context/Utils/Markdown/apiCall";
 import { handleRawTextInput } from "../../master";
+import { conversationHistory } from "@/Mediums/Chat/Utils/prompt&type";
 
-const TextArea = ({ text, setText, }: { text: string, setText: Dispatch<SetStateAction<string>> }) => {
+
+const TextArea = ({ text, setText, TextConversationHistory, setTextConversationHistory }: { text: string, setText: Dispatch<SetStateAction<string>>, TextConversationHistory: conversationHistory[], setTextConversationHistory: Dispatch<SetStateAction<conversationHistory[]>> }) => {
 
     const textAreaRef = useRef<HTMLTextAreaElement>(null);
 
@@ -20,7 +22,7 @@ const TextArea = ({ text, setText, }: { text: string, setText: Dispatch<SetState
         //(Ctrl+B)
         if ((e.metaKey || e.ctrlKey) && e.key === 'b') {
             e.preventDefault();
-            await handleRawTextInput(text, setText);
+            await handleRawTextInput(text, setText, TextConversationHistory, setTextConversationHistory);
         }
 
         // Open save confirmation (Ctrl+Enter)
@@ -39,15 +41,16 @@ const TextArea = ({ text, setText, }: { text: string, setText: Dispatch<SetState
             }
             else if (e.key === 'Enter') {
                 e.preventDefault();
-                saveToContext();
+                await MarkdownAPI.WriteNewToContext(text);
                 setShowSaveConfirmation(false);
             }
         }
-    }, [text, showSaveConfirmation]);
+    }, [text, showSaveConfirmation, setText]);
 
 
     useEffect(() => {
         window.addEventListener('keydown', handleKeyboardShortcuts);
+
         return () => {
             window.removeEventListener('keydown', handleKeyboardShortcuts);
         };

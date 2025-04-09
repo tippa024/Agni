@@ -2,16 +2,13 @@ import { getModelStream } from "@/Models/Stream/Handlers/getStream";
 import { SystemMessageForText } from "./Utils/promt&type";
 import { Dispatch, useState } from "react";
 import { SetStateAction } from "react";
-
-interface conversationHistory {
-  role: string;
-  content: string;
-  timestamp: string;
-}
+import { conversationHistory } from "@/Mediums/Chat/Utils/prompt&type";
 
 export const handleRawTextInput = async (
   input: string,
-  setText: Dispatch<SetStateAction<string>>
+  setText: Dispatch<SetStateAction<string>>,
+  textConversationHistory: conversationHistory[],
+  setTextConversationHistory: Dispatch<SetStateAction<conversationHistory[]>>
 ) => {
   let contextMessage = "";
 
@@ -41,7 +38,6 @@ export const handleRawTextInput = async (
       contextMessage = cleanedText; // Store as context for the conversation
       return extractedMessage; // Return the extracted message
     }
-
     return text; // Fallback to return original text
   };
 
@@ -64,28 +60,46 @@ export const handleRawTextInput = async (
       Message
     : input;
 
-  console.log("finalMessage", finalMessage);
-
   // Get the model stream
   const response = await getModelStream(
     "OpenAI",
     {
       userMessage: finalMessage,
       systemMessage: SystemMessageForText.content,
-      conversationHistory: [],
-      model: "gpt-4o-mini",
+      conversationHistory: textConversationHistory,
+      model: "gpt-4o",
       context: false,
     },
-    () => {
-      // We'll handle streaming in the return object
-    }
+    () => {}
   );
+  let assistantResponse = "";
   for await (const chunk of response.stream()) {
     setText((prev) => prev + chunk);
+    assistantResponse += chunk;
   }
+  setTextConversationHistory([
+    ...textConversationHistory,
+    {
+      role: "user",
+      content: userQuestion || "",
+      timestamp: new Date().toISOString(),
+      location: { latitude: 0, longitude: 0 },
+      userPreferences: {
+        searchEnabled: false,
+        context: false,
+        model: ["gpt-4o-mini", "OpenAI"],
+      },
+    },
+    {
+      role: "assistant",
+      content: assistantResponse,
+      model: "gpt-4o-mini",
+      modelProvider: "OpenAI",
+      timestamp: new Date().toISOString(),
+    },
+  ]);
 
-  return {
-    stream: () => response.stream(),
-    getText: async () => await response.getText(),
-  };
+  console.log("textConversationHistory", textConversationHistory);
+
+  return null;
 };

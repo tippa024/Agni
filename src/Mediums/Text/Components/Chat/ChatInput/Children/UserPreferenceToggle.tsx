@@ -1,25 +1,15 @@
 import { UserPreferences } from "@/Mediums/Chat/Utils/prompt&type";
 import { Switch } from "@/Mediums/Chat/Components/ChatInput/ui/Switch";
 import { Label } from "@/Mediums/Chat/Components/ChatInput/ui/Label";
-import { Dispatch, memo, SetStateAction, useEffect, useState } from "react";
+import { Dispatch, memo, SetStateAction } from "react";
 
-const UserPreferenceToggle = function UserPreferenceToggle({
+export const UserPreferenceToggle = function UserPreferenceToggle({
     userPreferences,
     setUserPreferences,
 }: {
     userPreferences: UserPreferences;
     setUserPreferences: Dispatch<SetStateAction<UserPreferences>>;
 }) {
-    const [prevUserPreferences, setPrevUserPreferences] = useState(userPreferences);
-
-    useEffect(() => {
-        if (userPreferences !== prevUserPreferences) {
-            setPrevUserPreferences(userPreferences);
-        } else {
-            //console.log("User Preference Toggle Rendered for unknown reason");
-        }
-    }, [userPreferences, prevUserPreferences]);
-
     return (
         <div>
             <div className="flex items-center gap-1.5 p-3">
@@ -98,5 +88,3 @@ const UserPreferenceToggle = function UserPreferenceToggle({
         </div>
     )
 }
-
-export default memo(UserPreferenceToggle);

@@ -1,4 +1,4 @@
-import { ChatActions, SearchResult, Message } from "../../Utils/prompt&type";
+import { SearchResult, Message } from "../../Utils/prompt&type";
 import { Dispatch, SetStateAction } from "react";
 
 export const setMessage = {
