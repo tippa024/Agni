@@ -13,9 +13,10 @@ import { getModelStream } from "@/Models/Stream/Handlers/getStream";
 
 export async function handleRawUserInput(
   e: React.FormEvent,
-  state: ChatState,
+  getState: () => ChatState,
   actions: ChatActions
 ) {
+  const state = getState();
   console.log("Initialising Master Handler", {
     userQuery: state.input,
     searchEnabled: state.userPreferences.searchEnabled,

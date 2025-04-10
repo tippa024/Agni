@@ -1,6 +1,6 @@
+import { memo } from "react";
 
 const CurrentStepAndTime = ({ messageComponentIndex, currentProcessingStep, font, timestamp }: { messageComponentIndex: number, currentProcessingStep: string | undefined, font: { className: string }, timestamp: string }) => {
-    //console.log("Current Step and Time Rendered");
     return (
         <div className="flex items-center justify-between mb-4">
             <div className="flex items-center">
@@ -29,6 +29,6 @@ const CurrentStepAndTime = ({ messageComponentIndex, currentProcessingStep, font
             </div>
         </div>
     )
-}
+};
 
-export default CurrentStepAndTime;
+export default memo(CurrentStepAndTime);

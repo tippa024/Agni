@@ -1,6 +1,6 @@
 import { SearchResult } from "@/Mediums/Chat/Utils/prompt&type";
 import { useState } from "react";
-
+import { memo } from "react";
 const SearchResultsinChat = function SearchResultsinChat({ sources }: { sources: SearchResult[] }) {
 
     const [showAllSources, setShowAllSources] = useState(false);
@@ -62,4 +62,4 @@ const SearchResultsinChat = function SearchResultsinChat({ sources }: { sources:
     }
 }
 
-export default SearchResultsinChat;
+export default memo(SearchResultsinChat);

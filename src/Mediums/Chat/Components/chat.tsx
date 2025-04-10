@@ -1,6 +1,6 @@
-import { useRef, useEffect, useState, SetStateAction, Dispatch, memo, useCallback } from "react";
+import { useRef, useEffect, SetStateAction, Dispatch, memo, useCallback, useMemo } from "react";
 import UserInput from "./ChatInput/ChatInput";
-import { ChatActions, ChatState, UserPreferences, Message, conversationHistory } from "../Utils/prompt&type";
+import { UserPreferences, Message, conversationHistory } from "../Utils/prompt&type";
 import { handleRawUserInput } from "../master";
 import { SynthesizeAPI } from "@/Context/Utils/Synthesize/apiCall";
 import { MarkdownAPI } from "@/Context/Utils/Markdown/apiCall";
@@ -28,45 +28,19 @@ function Chat(props: {
     setUserPreferences: Dispatch<SetStateAction<UserPreferences>>;
 }) {
 
-
-
-
-    const [prevMessages, setPrevMessages] = useState(props.messages);
-    const [prevInput, setPrevInput] = useState(props.input);
-    const [prevUserPreferences, setPrevUserPreferences] = useState(props.userPreferences);
-    const [prevCurrentProcessingStep, setPrevCurrentProcessingStep] = useState(props.currentProcessingStep);
-
-    {/*  useEffect(() => {
-        if (props.messages !== prevMessages) {
-            console.log("Chat Rendered due to messages change:", props.messages);
-            setPrevMessages(props.messages);
-        } else if (props.input !== prevInput) {
-            console.log("Chat Rendered due to input change:", props.input);
-            setPrevInput(props.input);
-        } else if (props.userPreferences !== prevUserPreferences) {
-            console.log("Chat Rendered due to userPreferences change:", props.userPreferences);
-            setPrevUserPreferences(props.userPreferences);
-        } else if (props.currentProcessingStep !== prevCurrentProcessingStep) {
-            console.log("Chat Rendered due to currentProcessingStep change:", props.currentProcessingStep);
-            setPrevCurrentProcessingStep(props.currentProcessingStep);
-        } else {
-            console.log("Chat Rendered for unknown reason");
-        }
-    }, [props.messages, prevMessages, props.input, prevInput, props.userPreferences, prevUserPreferences, props.currentProcessingStep, prevCurrentProcessingStep]);
-*/}
+    const memoizedFont = useMemo(() => sourceSerif4, []);
 
     const onSubmit = useCallback(async (e: React.FormEvent) => {
-        console.log("On Submit Rendered");
         await handleRawUserInput(
             e,
-            {
+            () => ({
                 input: props.input,
                 messages: props.messages,
                 userPreferences: props.userPreferences,
                 currentProcessingStep: props.currentProcessingStep,
                 conversationHistory: props.conversationHistory,
                 location: props.location ? props.location : { latitude: 0, longitude: 0 },
-            },
+            }),
             {
                 setMessages: props.setMessages,
                 setCurrentProcessingStep: props.setCurrentProcessingStep,
@@ -74,7 +48,7 @@ function Chat(props: {
                 setUserPreferences: props.setUserPreferences,
             }
         );
-    }, [props.input, props.messages, props.userPreferences, props.currentProcessingStep, props.conversationHistory, props.location, props.setMessages, props.setCurrentProcessingStep, props.setConversationHistory, props.setUserPreferences]);
+    }, [props.input]);
 
     const messagesEndRef = useRef<HTMLDivElement>(null);
 
@@ -92,6 +66,19 @@ function Chat(props: {
         }
     }, [props.messages]);
 
+    const handleToggleContext = useCallback(() => {
+        props.setUserPreferences(prev => ({ ...prev, context: !prev.context }));
+    }, [props.setUserPreferences]);
+
+    const handleSave = useCallback(async () => {
+        const context = await SynthesizeAPI.ConversationToMarkDown(props.conversationHistory, "claude-3-5-sonnet-20241022", "Anthropic");
+        if (context) {
+            await MarkdownAPI.WriteNewToContext(context.filename, context.markdown);
+        }
+        conversationHistoryAPI.addNewMessages(props.conversationHistory);
+    }, [props.conversationHistory]);
+
+
     return (
         (
             props.messages?.length === 0 ? (
@@ -102,9 +89,7 @@ function Chat(props: {
                             ${props.userPreferences.context
                                     ? 'bg-gray-200 text-black opacity-80 hover:opacity-100'
                                     : 'bg-gray-300 text-white opacity-50 hover:opacity-80'}`}
-                            onClick={() => {
-                                props.setUserPreferences({ ...props.userPreferences, context: !props.userPreferences.context });
-                            }}
+                            onClick={handleToggleContext}
                         >
                             Context
                         </button>
@@ -113,7 +98,7 @@ function Chat(props: {
                         <UserInput
                             input={props.input}
                             userPreferences={props.userPreferences}
-                            font={sourceSerif4}
+                            font={memoizedFont}
                             onSubmit={onSubmit}
                             setInput={props.setInput}
                             setUserPreferences={props.setUserPreferences}
@@ -124,13 +109,7 @@ function Chat(props: {
                 (<div className="flex flex-row h-screen">
                     <div className='flex h-8'>
                         <button className='bg-[#4A4235] text-white px-3 py-1.5 opacity-20 hover:opacity-80 transition-colors duration-200 font-medium text-sm'
-                            onClick={async () => {
-                                const context = await SynthesizeAPI.ConversationToMarkDown(props.conversationHistory, "claude-3-5-sonnet-20241022", "Anthropic");
-                                if (context) {
-                                    await MarkdownAPI.WriteNewToContext(context.filename, context.markdown);
-                                }
-                                conversationHistoryAPI.addNewMessages(props.conversationHistory);
-                            }}
+                            onClick={handleSave}
                         >
                             Save
                         </button>
@@ -162,7 +141,7 @@ function Chat(props: {
                                 <UserInput
                                     input={props.input}
                                     userPreferences={props.userPreferences}
-                                    font={sourceSerif4}
+                                    font={memoizedFont}
                                     onSubmit={onSubmit}
                                     setInput={props.setInput}
                                     setUserPreferences={props.setUserPreferences}
@@ -173,9 +152,7 @@ function Chat(props: {
                     <div className='flex h-8'>
                         <button className={`bg-[#4A4235] text-white px-3 py-1.5 transition-colors duration-200 font-medium text-sm
                  ${props.userPreferences.context ? 'opacity-80' : 'opacity-20'}`}
-                            onClick={() => {
-                                props.setUserPreferences({ ...props.userPreferences, context: !props.userPreferences.context });
-                            }}
+                            onClick={handleToggleContext}
                         >
                             Context
                         </button>

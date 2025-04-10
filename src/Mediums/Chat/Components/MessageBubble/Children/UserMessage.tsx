@@ -1,17 +1,8 @@
 import { Message } from "@/Mediums/Chat/Utils/prompt&type";
-import { useEffect } from "react";
-import { useState } from "react";
+import { useEffect, useState, memo } from "react";
 
 const UserMessageinChat = function UserMessageinChat({ message, font }: { message: Message, font: { className: string } }) {
-    const [prevMessage, setPrevMessage] = useState(message);
 
-    useEffect(() => {
-        if (message !== prevMessage) {
-            setPrevMessage(message);
-        } else {
-            console.log("User Message in Chat Rendered for unknown reason", Date.now());
-        }
-    }, [message, prevMessage]);
 
     return (
         <div className="flex flex-col items-end p-2">
@@ -20,5 +11,6 @@ const UserMessageinChat = function UserMessageinChat({ message, font }: { messag
             </div>
         </div>
     )
-}
-export default UserMessageinChat;
+};
+
+export default memo(UserMessageinChat);

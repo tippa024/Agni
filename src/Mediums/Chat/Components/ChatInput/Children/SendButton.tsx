@@ -1,6 +1,6 @@
 import { memo, useEffect, useState } from "react";
 
-const SendButton = memo(function SendButton({ showSendButton }: { showSendButton: boolean }) {
+const SendButton = function SendButton({ showSendButton }: { showSendButton: boolean }) {
     const [prevShowSendButton, setPrevShowSendButton] = useState(showSendButton);
     useEffect(() => {
         if (showSendButton !== prevShowSendButton) {
@@ -28,6 +28,6 @@ const SendButton = memo(function SendButton({ showSendButton }: { showSendButton
             </button>
         </div>
     );
-});
+};
 
-export default SendButton;
+export default memo(SendButton);

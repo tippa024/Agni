@@ -1,7 +1,7 @@
-import { memo, useEffect, useState } from "react";
+import { memo, useEffect } from "react";
 
 
-const InputTextArea = memo(function InputTextArea({
+const InputTextArea = function InputTextArea({
     input,
     setInput,
     handleFormSubmit,
@@ -50,6 +50,6 @@ const InputTextArea = memo(function InputTextArea({
         />
     )
 }
-)
 
-export default InputTextArea;
+
+export default memo(InputTextArea);

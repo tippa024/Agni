@@ -24,42 +24,6 @@ export default function Home() {
   const [conversationHistory, setConversationHistory] = useState<conversationHistory[]>([]);
 
 
-  const [chatState, setChatState] = useState<ChatState>({
-    input: "",
-    messages: [],
-    userPreferences: {
-      searchEnabled: false,
-      context: false,
-      model: ["gpt-4o-mini", "OpenAI"] as ["gpt-4o-mini", "OpenAI"] | ["claude-3-5-haiku-20241022", "Anthropic"] | ["claude-3-5-sonnet-20241022", "Anthropic"],
-    },
-    currentProcessingStep: "",
-    conversationHistory: [],
-    location: { latitude: 0, longitude: 0 },
-  });
-
-  const chatActions: ChatActions = {
-    setMessages: (messages) => setChatState(prevState => ({
-      ...prevState,
-      messages: typeof messages === 'function' ? messages(prevState.messages) : messages
-    })),
-    setInput: (input) => setChatState(prevState => ({
-      ...prevState,
-      input
-    })),
-    setCurrentProcessingStep: (step) => setChatState(prevState => ({
-      ...prevState,
-      currentProcessingStep: step
-    })),
-    setConversationHistory: (history) => setChatState(prevState => ({
-      ...prevState,
-      conversationHistory: typeof history === 'function' ? history(prevState.conversationHistory) : history
-    })),
-    setUserPreferences: (prefs) => setChatState(prevState => ({
-      ...prevState,
-      userPreferences: typeof prefs === 'function' ? prefs(prevState.userPreferences) : prefs
-    }))
-  };
-
 
 
   const [locationOn, setLocationOn] = useState<boolean>(false);
@@ -80,7 +44,7 @@ export default function Home() {
   }, []);
 
   return (
-    <main className="flex flex-col min-h-screen w-screen bg-white">
+    <main className="flex flex-col min-h-screen w-screen bg-white overflow-hidden overflow-y-auto scrollbar-hide">
       <Header location={location} locationOn={locationOn} mode={mode} setMode={setMode} />
       {mode === 'chat' ? <Chat input={input} messages={messages} userPreferences={userPreferences} currentProcessingStep={currentProcessingStep} conversationHistory={conversationHistory} location={location} setMessages={setMessages} setInput={setInput} setCurrentProcessingStep={setCurrentProcessingStep} setConversationHistory={setConversationHistory} setUserPreferences={setUserPreferences} /> : (
         <div className=' bg-white'>
