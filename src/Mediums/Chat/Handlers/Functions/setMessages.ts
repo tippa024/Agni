@@ -87,4 +87,17 @@ export const setMessage = {
       return newMessages;
     });
   },
+  AddCostToCurrent: function (
+    cost: number,
+    setMessages: Dispatch<SetStateAction<Message[]>>
+  ) {
+    setMessages((prev) => {
+      const newMessages = [...prev];
+      const lastMessage = newMessages[newMessages.length - 1];
+      if (lastMessage && lastMessage.role === "assistant") {
+        lastMessage.additionalInfo = `Cost untill now: ${cost.toFixed(6)} USD`;
+      }
+      return newMessages;
+    });
+  },
 };

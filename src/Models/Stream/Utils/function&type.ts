@@ -1,6 +1,10 @@
 export interface StreamResponse {
   stream: () => AsyncGenerator<string, void, unknown>;
   getText: () => Promise<string>;
+  getInputCost: () => string;
+  getCachedInputCost: () => string;
+  getOutputCost: () => string;
+  getTotalCost: () => string;
 }
 
 export async function createStreamFromResponse(
@@ -24,6 +28,10 @@ export async function createStreamFromResponse(
   }
 
   const decoder = new TextDecoder();
+  const inputCost = response.headers.get("X-Input-Cost") || "0";
+  const cachedInputCost = response.headers.get("X-Cached-Input-Cost") || "0";
+  const outputCost = response.headers.get("X-Output-Cost") || "0";
+  const totalCost = response.headers.get("X-Total-Cost") || "0";
 
   const streamFn = async function* () {
     try {
@@ -52,6 +60,18 @@ export async function createStreamFromResponse(
         fullText += chunk;
       }
       return fullText;
+    },
+    getTotalCost() {
+      return totalCost;
+    },
+    getInputCost() {
+      return inputCost;
+    },
+    getCachedInputCost() {
+      return cachedInputCost;
+    },
+    getOutputCost() {
+      return outputCost;
     },
   };
 }

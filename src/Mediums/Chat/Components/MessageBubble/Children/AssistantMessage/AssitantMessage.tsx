@@ -49,6 +49,9 @@ const AssistantMessageinChat = function AssistantMessageinChat({ message, messag
                     <div>
                         <TextOutput content={segmentedMessageContent.answer} thinkingVisible={!!segmentedMessageContent.thinking} />
                         <CopyButton content={segmentedMessageContent.answer} />
+                        <div className="text-xs text-[#2C2C2C]/60">
+                            {message.additionalInfo}
+                        </div>
                     </div>
                 )
             }

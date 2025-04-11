@@ -70,6 +70,8 @@ export const MarkdownAPI = {
   },
 
   WriteNewToContext: async (content: string, filename?: string) => {
+    console.log(`WriteToContext API Call starting`);
+
     if (content === "") {
       console.log(
         "Content received by WriteNewToContext API is empty, skipping write"
@@ -85,10 +87,16 @@ export const MarkdownAPI = {
         filename
       );
     }
+    if (filename.length > 250) {
+      console.log(
+        `File name is too Long ${filename.length} characters, using current timestamp as filename`,
+        filename
+      );
+      filename = `Context_${new Date()
+        .toLocaleString("en-IN", { timeZone: "Asia/Kolkata" })
+        .replace(/[/:\s]/g, "-")}`;
+    }
 
-    console.log(
-      `WriteToContext API Call starting` + "\n\n" + filename + "\n\n" + content
-    );
     try {
       const response = await fetch(`/api/Context/MarkDown/Write`, {
         method: "POST",

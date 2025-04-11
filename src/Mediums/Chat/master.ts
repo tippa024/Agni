@@ -116,6 +116,13 @@ export async function handleRawUserInput(
 
       actions.setCurrentProcessingStep("");
 
+      console.log("Total cost:", data.getTotalCost());
+
+      setMessage.AddCostToCurrent(
+        parseFloat(data.getTotalCost()),
+        actions.setMessages
+      );
+
       setConversationHistory.AddAssistantMessage(
         content,
         state.userPreferences.model[0],

@@ -37,26 +37,6 @@ export async function POST(req: NextRequest) {
       max_tokens: 1000,
     });
 
-    {
-      /*
-    // Create a TransformStream to handle the streaming
-    const encoder = new TextEncoder();
-    const stream = new ReadableStream({
-      async start(controller) {
-        for await (const chunk of response) {
-          const text = chunk.choices[0]?.delta?.content;
-          if (text) {
-            const encodedText = encoder.encode(text);
-            controller.enqueue(encodedText);
-            console.log("OpenAI API route - enque value:", encodedText);
-          }
-        }
-        controller.close();
-      },
-    });
-  */
-    }
-
     const { readable, writable } = new TransformStream();
     const encoder = new TextEncoder();
     const writer = writable.getWriter();

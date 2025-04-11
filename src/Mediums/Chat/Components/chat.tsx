@@ -48,7 +48,7 @@ function Chat(props: {
                 setUserPreferences: props.setUserPreferences,
             }
         );
-    }, [props.input]);
+    }, [props.input, props.setUserPreferences]);
 
     const messagesEndRef = useRef<HTMLDivElement>(null);
 

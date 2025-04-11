@@ -40,7 +40,7 @@ export async function getModelStream(
     messagesForModel = [{ role: "user", content: userMessage }] as Message[];
   }
   currentProcessingStep(`${provider} response`);
-  
+
   console.log(`Starting ${provider} API call function`);
   try {
     const data = await streamTextAPI[provider as keyof typeof streamTextAPI](
@@ -53,6 +53,10 @@ export async function getModelStream(
     return {
       stream: () => data.stream(),
       getText: async () => await data.getText(),
+      getTotalCost: () => data.getTotalCost(),
+      getInputCost: () => data.getInputCost(),
+      getCachedInputCost: () => data.getCachedInputCost(),
+      getOutputCost: () => data.getOutputCost(),
     };
   } catch (error) {
     console.error(`Error in ${provider} streaming:`, error);

@@ -18,7 +18,7 @@ export const streamTextAPI = {
     return createStreamFromResponse(response);
   },
 
-  OpenAI: async (
+  OpenAII: async (
     systemMessage: string,
     messages: Message[],
     model: string
@@ -32,6 +32,30 @@ export const streamTextAPI = {
         model: model,
       }),
     });
+
+    return createStreamFromResponse(response);
+  },
+  OpenAI: async (
+    systemMessage: string,
+    messages: Message[],
+    model: string
+  ): Promise<StreamResponse> => {
+    console.log("Starting OpenAI API call", messages);
+    const response = await fetch("/api/Models/OpenAI/Response", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        messages: messages,
+        model: model,
+        instructions: systemMessage,
+        stream: true,
+        temperature: 1,
+      }),
+    });
+    console.log(
+      "total cost from API call",
+      response.headers.get("X-Total-Cost")
+    );
 
     return createStreamFromResponse(response);
   },
