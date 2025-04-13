@@ -29,17 +29,27 @@ export async function getModelStream(
   const model = params.model;
   const userMessage = params.userMessage;
   const systemMessage = params.systemMessage;
-  let messagesForModel: Message[] = [];
+  let messagesForModel: Array<Pick<Message, "role" | "content">> = [];
 
   if (params.conversationHistory) {
-    messagesForModel = [
-      ...StreamlineConversationForAPI(params.conversationHistory),
-      { role: "user", content: userMessage },
-    ] as Message[];
+    const updatedHistory = [
+      ...params.conversationHistory.map((msg) => ({
+        role: msg.role as "user" | "assistant" | "system",
+        content: msg.content,
+      })),
+      { role: "user" as const, content: userMessage },
+    ];
+    messagesForModel = StreamlineConversationForAPI(updatedHistory) as Array<
+      Pick<Message, "role" | "content">
+    >;
   } else {
-    messagesForModel = [{ role: "user", content: userMessage }] as Message[];
+    messagesForModel = [
+      { role: "user" as const, content: userMessage },
+    ] as Array<Pick<Message, "role" | "content">>;
   }
   currentProcessingStep(`${provider} response`);
+
+  console.log("messagesForModel", messagesForModel);
 
   console.log(`Starting ${provider} API call function`);
   try {

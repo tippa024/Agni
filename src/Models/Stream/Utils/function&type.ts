@@ -28,20 +28,46 @@ export async function createStreamFromResponse(
   }
 
   const decoder = new TextDecoder();
-  const inputCost = response.headers.get("X-Input-Cost") || "0";
-  const cachedInputCost = response.headers.get("X-Cached-Input-Cost") || "0";
-  const outputCost = response.headers.get("X-Output-Cost") || "0";
-  const totalCost = response.headers.get("X-Total-Cost") || "0";
+  let inputCost = "0";
+  let cachedInputCost = "0";
+  let outputCost = "0";
+  let totalCost = "0";
 
   const streamFn = async function* () {
     try {
+      let buffer = "";
       while (true) {
         const { done, value } = await reader.read();
         if (done) break;
+
         const chunk = decoder.decode(value, { stream: true });
-        if (chunk) {
-          if (onChunk) onChunk(chunk);
-          yield chunk;
+        buffer += chunk;
+
+        // Process SSE format
+        const lines = buffer.split("\n\n");
+        buffer = lines.pop() || "";
+
+        for (const line of lines) {
+          if (line.trim() === "") continue;
+
+          if (line.startsWith("data: ")) {
+            try {
+              const data = JSON.parse(line.substring(6));
+
+              if (data.type === "costs") {
+                // Update costs from the stream and format as currency (USD)
+                inputCost = formatAsCurrency(data.inputCost);
+                cachedInputCost = formatAsCurrency(data.cachedInputCost);
+                outputCost = formatAsCurrency(data.outputCost);
+                totalCost = formatAsCurrency(data.totalCost);
+              } else if (data.type === "content" && data.content) {
+                if (onChunk) onChunk(data.content);
+                yield data.content;
+              }
+            } catch (e) {
+              console.error("Error parsing SSE data:", e, line);
+            }
+          }
         }
       }
     } catch (streamError) {
@@ -50,6 +76,13 @@ export async function createStreamFromResponse(
     } finally {
       reader?.releaseLock();
     }
+  };
+
+  // Helper function to format cost as USD currency
+  const formatAsCurrency = (value: number | string): string => {
+    const numValue = typeof value === "string" ? parseFloat(value) : value;
+    if (isNaN(numValue)) return "$0.00";
+    return `$${numValue.toFixed(6)}`;
   };
 
   return {

@@ -4,14 +4,14 @@ import { createStreamFromResponse, StreamResponse } from "./function&type";
 export const streamTextAPI = {
   Anthropic: async (
     systemMessage: string,
-    messages: Message[],
+    messages: Array<Pick<Message, "role" | "content">>,
     model: string
   ): Promise<StreamResponse> => {
     console.log("Starting Anthropic API call");
     const response = await fetch("/api/Models/Anthropic/Chat", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ systemMessage, messages, model }),
+      body: JSON.stringify({ systemMessage, messages, model, stream: true }),
     });
     console.log("Response received from Anthropic API call");
 
@@ -20,7 +20,7 @@ export const streamTextAPI = {
 
   OpenAII: async (
     systemMessage: string,
-    messages: Message[],
+    messages: Array<Pick<Message, "role" | "content">>,
     model: string
   ): Promise<StreamResponse> => {
     console.log("Starting OpenAI API call", messages);
@@ -37,7 +37,7 @@ export const streamTextAPI = {
   },
   OpenAI: async (
     systemMessage: string,
-    messages: Message[],
+    messages: Array<Pick<Message, "role" | "content">>,
     model: string
   ): Promise<StreamResponse> => {
     console.log("Starting OpenAI API call", messages);

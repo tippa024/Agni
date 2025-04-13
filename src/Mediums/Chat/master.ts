@@ -35,13 +35,6 @@ export async function handleRawUserInput(
 
   setMessage.NewRoleAndContent("user", userMessage, actions.setMessages);
 
-  setConversationHistory.AddUserMessage(
-    userMessage,
-    state.location,
-    state.userPreferences,
-    actions.setConversationHistory
-  );
-
   setMessage.InitialiseNewAssistant(actions.setMessages);
 
   try {
@@ -118,17 +111,24 @@ export async function handleRawUserInput(
 
       console.log("Total cost:", data.getTotalCost());
 
-      setMessage.AddCostToCurrent(
-        parseFloat(data.getTotalCost()),
-        actions.setMessages
-      );
+      const costValue = data.getTotalCost().replace("$", "") || "0";
+      setMessage.AddCostToCurrent(parseFloat(costValue), actions.setMessages);
 
-      setConversationHistory.AddAssistantMessage(
-        content,
-        state.userPreferences.model[0],
-        state.userPreferences.model[1],
+      setConversationHistory.AddUserMessage(
+        userMessage,
+        state.location,
+        state.userPreferences,
         actions.setConversationHistory
       );
+
+      if (content.length > 0) {
+        setConversationHistory.AddAssistantMessage(
+          content,
+          state.userPreferences.model[0],
+          state.userPreferences.model[1],
+          actions.setConversationHistory
+        );
+      }
     } catch (error) {
       console.error("Error in Model Response:", error);
       actions.setCurrentProcessingStep("");

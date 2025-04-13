@@ -95,7 +95,7 @@ export const setMessage = {
       const newMessages = [...prev];
       const lastMessage = newMessages[newMessages.length - 1];
       if (lastMessage && lastMessage.role === "assistant") {
-        lastMessage.additionalInfo = `Cost untill now: ${cost.toFixed(6)} USD`;
+        lastMessage.additionalInfo = `Cost untill now: ${cost.toFixed(6)} $`;
       }
       return newMessages;
     });

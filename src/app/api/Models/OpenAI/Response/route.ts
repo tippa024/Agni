@@ -1,6 +1,10 @@
 import { NextRequest, NextResponse } from "next/server";
 import { OpenAI } from "openai";
 
+export const runtime = "edge";
+
+export const dynamic = "force-dynamic";
+
 const openai = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY,
 });
@@ -102,6 +106,10 @@ const modelPricing = [
 ];
 
 export async function POST(req: NextRequest) {
+  if (!process.env.OPENAI_API_KEY) {
+    return new Response("OpenAI API key is not set", { status: 500 });
+  }
+
   const {
     messages,
     model,
@@ -113,6 +121,10 @@ export async function POST(req: NextRequest) {
     tools = undefined,
     reasoning = undefined,
   } = await req.json();
+
+  if (!messages || !Array.isArray(messages)) {
+    return new Response("Messages are required", { status: 400 });
+  }
 
   if (stream) {
     console.log("Starting OpenAI API call with response and stream is on");
@@ -134,66 +146,69 @@ export async function POST(req: NextRequest) {
     const encoder = new TextEncoder();
     const writer = writable.getWriter();
 
-    let streamTotalCost = 0;
-
     (async () => {
       try {
-        for await (const event of outputStream) {
-          if (event.type === "response.output_text.delta" && event.delta) {
-            const delta = event.delta;
-            await writer.write(encoder.encode(delta));
+        let costs = {
+          inputCost: 0,
+          cachedInputCost: 0,
+          outputCost: 0,
+          totalCost: 0,
+        };
+
+        const processCosts = async () => {
+          for await (const event of usageStream) {
+            if (event.type === "response.completed" && event.response.usage) {
+              const { input_tokens, input_tokens_details, output_tokens } =
+                event.response.usage;
+              const modelName = event.response.model;
+              const pricing = modelPricing.find((item) =>
+                item.models.includes(modelName)
+              );
+
+              if (pricing) {
+                const nonCachedTokens =
+                  input_tokens - (input_tokens_details?.cached_tokens || 0);
+                costs = {
+                  inputCost: nonCachedTokens * (pricing.input / 1000000),
+                  cachedInputCost: pricing.cachedInput
+                    ? (input_tokens_details?.cached_tokens || 0) *
+                      (pricing.cachedInput / 1000000)
+                    : 0,
+                  outputCost: output_tokens * (pricing.output / 1000000),
+                  totalCost: 0,
+                };
+                costs.totalCost =
+                  costs.inputCost + costs.cachedInputCost + costs.outputCost;
+
+                await writer.write(
+                  encoder.encode(
+                    `data: ${JSON.stringify({ type: "costs", ...costs })}\n\n`
+                  )
+                );
+              }
+            }
           }
-        }
+        };
+
+        const processContent = async () => {
+          for await (const event of outputStream) {
+            if (event.type === "response.output_text.delta" && event.delta) {
+              await writer.write(
+                encoder.encode(
+                  `data: ${JSON.stringify({
+                    type: "content",
+                    content: event.delta,
+                  })}\n\n`
+                )
+              );
+            }
+          }
+        };
+        await Promise.all([processCosts(), processContent()]);
       } catch (error) {
         console.error("Stream error:", error);
       } finally {
         await writer.close();
-      }
-    })();
-
-    (async () => {
-      try {
-        let totalInputTokens = 0;
-        let totalCachedInputTokens = 0;
-        let totalOutputTokens = 0;
-
-        for await (const event of usageStream) {
-          if (event.type === "response.completed" && event.response.usage) {
-            const { input_tokens, input_tokens_details, output_tokens } =
-              event.response.usage;
-
-            totalInputTokens = input_tokens;
-            totalOutputTokens = output_tokens;
-
-            if (input_tokens_details && input_tokens_details.cached_tokens) {
-              totalCachedInputTokens = input_tokens_details.cached_tokens;
-            }
-
-            const modelName = event.response.model;
-            const pricing = modelPricing.find((item) =>
-              item.models.includes(modelName)
-            );
-
-            if (pricing) {
-              const nonCachedTokens = totalInputTokens - totalCachedInputTokens;
-              const inputCost = nonCachedTokens * (pricing.input / 1000000);
-              const cachedInputCost = pricing.cachedInput
-                ? totalCachedInputTokens * (pricing.cachedInput / 1000000)
-                : 0;
-              const outputCost = totalOutputTokens * (pricing.output / 1000000);
-              streamTotalCost = inputCost + cachedInputCost + outputCost;
-              console.log("Stream cost:", {
-                inputCost: parseFloat(inputCost.toFixed(6)),
-                cachedInputCost: parseFloat(cachedInputCost.toFixed(6)),
-                outputCost: parseFloat(outputCost.toFixed(6)),
-                totalCost: parseFloat(streamTotalCost.toFixed(6)),
-                currency: "USD",
-              });
-            }
-          }
-        }
-      } catch (error) {
-        console.error("Error tracking token usage:", error);
       }
     })();
 
@@ -203,28 +218,6 @@ export async function POST(req: NextRequest) {
         "Transfer-Encoding": "chunked",
         "X-Content-Type-Options": "nosniff",
         "Cache-Control": "no-cache, no-transform",
-        "X-Input-Cost": parseFloat(streamTotalCost.toFixed(6)).toLocaleString(
-          "en-US",
-          {
-            style: "currency",
-            currency: "USD",
-          }
-        ),
-
-        "X-Output-Cost": parseFloat(streamTotalCost.toFixed(6)).toLocaleString(
-          "en-US",
-          {
-            style: "currency",
-            currency: "USD",
-          }
-        ),
-        "X-Total-Cost": parseFloat(streamTotalCost.toFixed(6)).toLocaleString(
-          "en-US",
-          {
-            style: "currency",
-            currency: "USD",
-          }
-        ),
       },
     });
   }
