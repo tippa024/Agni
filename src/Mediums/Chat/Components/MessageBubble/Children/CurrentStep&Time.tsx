@@ -1,10 +1,10 @@
 import { memo } from "react";
 
-const CurrentStepAndTime = ({ messageComponentIndex, currentProcessingStep, font, timestamp }: { messageComponentIndex: number, currentProcessingStep: string | undefined, font: { className: string }, timestamp: string }) => {
+const AssistantMessageHeader = ({ messageComponentIndex, currentProcessingStep, font, timestamp }: { messageComponentIndex: number, currentProcessingStep: string | undefined, font: { className: string }, timestamp: string }) => {
     return (
         <div className="flex items-center justify-between mb-4">
             <div className="flex items-center">
-                <div className="text-sm font-mono mr-2 font-semibold uppercase tracking-wide text-[#2C2C2C]">AGNI {messageComponentIndex}</div>
+                <div className="text-sm font-mono mr-2 font-semibold uppercase tracking-wide text-[#2C2C2C]">{(messageComponentIndex / 2) + 0.5}</div>
                 {
                     currentProcessingStep && currentProcessingStep !== '' &&
                     (
@@ -31,4 +31,4 @@ const CurrentStepAndTime = ({ messageComponentIndex, currentProcessingStep, font
     )
 };
 
-export default memo(CurrentStepAndTime);
+export default memo(AssistantMessageHeader);

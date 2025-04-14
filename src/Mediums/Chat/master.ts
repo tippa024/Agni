@@ -73,9 +73,9 @@ export async function handleRawUserInput(
 
     console.log(
       "Master Handler concluding with model:",
-      state.userPreferences.model[0],
+      state.userPreferences.model.apiCallName,
       "from",
-      state.userPreferences.model[1]
+      state.userPreferences.model.provider
     );
 
     try {
@@ -85,13 +85,13 @@ export async function handleRawUserInput(
       let updateTimeout;
 
       const data = await getModelStream(
-        state.userPreferences.model[1],
+        state.userPreferences.model.provider,
         {
           userMessage: contextualizedInput,
           systemMessage: systemMessage.content,
           conversationHistory: state.conversationHistory,
           context: state.userPreferences.context,
-          model: state.userPreferences.model[0],
+          model: state.userPreferences.model,
         },
         actions.setCurrentProcessingStep
       );
@@ -106,13 +106,12 @@ export async function handleRawUserInput(
           );
         }, 5);
       }
-
       actions.setCurrentProcessingStep("");
 
-      console.log("Total cost:", data.getTotalCost());
-
-      const costValue = data.getTotalCost().replace("$", "") || "0";
-      setMessage.AddCostToCurrent(parseFloat(costValue), actions.setMessages);
+      setMessage.AddCostToCurrent(
+        parseFloat(data.getTotalCost()),
+        actions.setMessages
+      );
 
       setConversationHistory.AddUserMessage(
         userMessage,
@@ -124,13 +123,16 @@ export async function handleRawUserInput(
       if (content.length > 0) {
         setConversationHistory.AddAssistantMessage(
           content,
-          state.userPreferences.model[0],
-          state.userPreferences.model[1],
+          state.userPreferences.model.apiCallName,
+          state.userPreferences.model.provider,
           actions.setConversationHistory
         );
       }
     } catch (error) {
-      console.error("Error in Model Response:", error);
+      setMessage.UpdateAssistantContentandTimeStamp(
+        "Daya chesi console log nu check chesukondi",
+        actions.setMessages
+      );
       actions.setCurrentProcessingStep("");
     }
   } catch (error) {
@@ -144,8 +146,8 @@ export async function handleRawUserInput(
     );
     setConversationHistory.AddAssistantMessage(
       "I apologize, but I encountered an error while processing your request. Please try again.",
-      state.userPreferences.model[0],
-      state.userPreferences.model[1],
+      state.userPreferences.model.apiCallName,
+      state.userPreferences.model.provider,
       actions.setConversationHistory
     );
   }

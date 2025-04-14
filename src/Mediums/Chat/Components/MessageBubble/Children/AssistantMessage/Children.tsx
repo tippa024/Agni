@@ -1,6 +1,8 @@
 import MarkdownRenderer from "@/app/components/render";
 import { useEffect, useState } from "react";
 import { memo } from "react";
+import { Message } from "@/Mediums/Chat/Utils/prompt&type";
+
 export const Reasoning = memo(({ content, isCollapsed, setIsCollapsed, wordCount }: { content: string, isCollapsed: boolean, setIsCollapsed: (isCollapsed: boolean) => void, wordCount: number }) => {
     return (
         <div className="mb-6">
@@ -85,9 +87,20 @@ export const CopyButton = memo(({ content }: { content: string }) => {
                     />
                 )}
             </svg>
-            <span className="opacity-0 hover:opacity-100 transition-opacity">
+            <span className="transition-opacity">
                 {isCopied ? 'Copied!' : 'Copy'}
             </span>
+        </button>
+    )
+});
+
+
+export const AdditionalInfo = memo(({ message }: { message: Message }) => {
+
+    return (
+        <button
+            className=" opacity-0 hover:opacity-100 transition-all duration-200 flex items-center gap-1.5 text-xs text-[#2C2C2C]/60 hover:text-[#2C2C2C]">
+            <div>{message.additionalInfo}</div>
         </button>
     )
 });

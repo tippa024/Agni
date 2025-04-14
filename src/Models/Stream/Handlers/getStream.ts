@@ -1,4 +1,8 @@
-import { conversationHistory, Message } from "@/Mediums/Chat/Utils/prompt&type";
+import {
+  conversationHistory,
+  Message,
+  supportedModels,
+} from "@/Mediums/Chat/Utils/prompt&type";
 import { StreamlineConversationForAPI } from "./prepareMessages";
 import { streamTextAPI } from "../Utils/apiCall";
 import { MarkdownAPI } from "@/Context/Utils/Markdown/apiCall";
@@ -10,7 +14,7 @@ export async function getModelStream(
     systemMessage: string;
     conversationHistory?: conversationHistory[];
     context?: boolean;
-    model: string;
+    model: supportedModels;
   },
   currentProcessingStep: (step: string) => void
 ) {
@@ -49,8 +53,6 @@ export async function getModelStream(
   }
   currentProcessingStep(`${provider} response`);
 
-  console.log("messagesForModel", messagesForModel);
-
   console.log(`Starting ${provider} API call function`);
   try {
     const data = await streamTextAPI[provider as keyof typeof streamTextAPI](
@@ -60,6 +62,7 @@ export async function getModelStream(
     );
 
     console.log(`${provider} API call function success`);
+
     return {
       stream: () => data.stream(),
       getText: async () => await data.getText(),

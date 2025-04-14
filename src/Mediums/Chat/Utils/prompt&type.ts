@@ -1,4 +1,6 @@
 import { Dispatch, SetStateAction } from "react";
+import { openaiModelDetails } from "@/Models/OpenAI/modeldetails";
+import { anthropicModelDetails } from "@/Models/Anthropic/modeldetails";
 
 export interface ChatInputProps {
   input: string;
@@ -9,25 +11,57 @@ export interface ChatInputProps {
   setUserPreferences: Dispatch<SetStateAction<UserPreferences>>;
 }
 
+export interface pricing {
+  input: number;
+  cachewrite: number | null;
+  cacheread: number | null;
+  output: number;
+}
+
+export interface modeloptionsforprovider {
+  name: string;
+  apiCallName: string;
+  reasoning: boolean;
+  pricing: pricing;
+}
+
+export interface supportedModels extends modeloptionsforprovider {
+  provider: string;
+}
+
+export function getSupportedModels(): supportedModels[] {
+  const openaiModels: supportedModels[] = openaiModelDetails.map((model) => ({
+    provider: "OpenAI",
+    name: model.name,
+    apiCallName: model.apiCallName,
+    pricing: model.pricing,
+    reasoning: model.reasoning,
+  }));
+
+  const anthropicModels: supportedModels[] = anthropicModelDetails.map(
+    (model) => ({
+      provider: "Anthropic",
+      name: model.name,
+      apiCallName: model.apiCallName,
+      pricing: model.pricing,
+      reasoning: model.reasoning,
+    })
+  );
+
+  return [...openaiModels, ...anthropicModels];
+}
+
 export type UserPreferences =
   | {
       searchEnabled: true;
       context: boolean;
       searchProvider: "OpenPerplex";
-      model:
-        | ["gpt-4o-mini", "OpenAI"]
-        | ["claude-3-5-haiku-20241022", "Anthropic"]
-        | ["gpt-4o", "OpenAI"]
-        | ["claude-3-5-sonnet-20241022", "Anthropic"];
+      model: supportedModels;
     }
   | {
       searchEnabled: false;
       context: boolean;
-      model:
-        | ["gpt-4o-mini", "OpenAI"]
-        | ["claude-3-5-haiku-20241022", "Anthropic"]
-        | ["gpt-4o", "OpenAI"]
-        | ["claude-3-5-sonnet-20241022", "Anthropic"];
+      model: supportedModels;
     };
 
 export interface ChatState {
@@ -87,6 +121,36 @@ export type conversationHistory =
       model: string;
       modelProvider: string;
       timestamp: string;
+    }
+  | {
+      role: "developer";
+      content: string;
+      timestamp: string;
+    };
+
+export type conversation =
+  | {
+      role: "system";
+      content: string;
+      timestamp: string;
+    }
+  | {
+      role: "user";
+      content: string;
+      timestamp: string;
+      location: { latitude: number; longitude: number };
+      userPreferences: UserPreferences;
+    }
+  | {
+      role: "assistant";
+      content: string;
+      model: string;
+      modelProvider: string;
+      timestamp: string;
+      context?: {
+        reasoning: string;
+        sources: SearchResult[];
+      };
     }
   | {
       role: "developer";

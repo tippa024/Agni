@@ -91,11 +91,12 @@ export const setMessage = {
     cost: number,
     setMessages: Dispatch<SetStateAction<Message[]>>
   ) {
+    console.log("setting cost to current message", cost);
     setMessages((prev) => {
       const newMessages = [...prev];
       const lastMessage = newMessages[newMessages.length - 1];
       if (lastMessage && lastMessage.role === "assistant") {
-        lastMessage.additionalInfo = `Cost untill now: ${cost.toFixed(6)} $`;
+        lastMessage.additionalInfo = `${cost.toFixed(6)} $`;
       }
       return newMessages;
     });

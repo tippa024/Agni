@@ -114,6 +114,7 @@ export async function POST(req: NextRequest) {
     messages,
     model,
     instructions,
+    pricing,
     stream = undefined,
     temperature = undefined,
     text = undefined,
@@ -121,6 +122,8 @@ export async function POST(req: NextRequest) {
     tools = undefined,
     reasoning = undefined,
   } = await req.json();
+
+  console.log(" model & pricing", model, pricing);
 
   if (!messages || !Array.isArray(messages)) {
     return new Response("Messages are required", { status: 400 });
@@ -160,32 +163,27 @@ export async function POST(req: NextRequest) {
             if (event.type === "response.completed" && event.response.usage) {
               const { input_tokens, input_tokens_details, output_tokens } =
                 event.response.usage;
-              const modelName = event.response.model;
-              const pricing = modelPricing.find((item) =>
-                item.models.includes(modelName)
+
+              const nonCachedTokens =
+                input_tokens - (input_tokens_details.cached_tokens || 0);
+              costs = {
+                inputCost: nonCachedTokens * (pricing.input / 1000000),
+                cachedInputCost:
+                  input_tokens_details.cached_tokens *
+                  (pricing.cacheread / 1000000),
+                outputCost: output_tokens * (pricing.output / 1000000),
+                totalCost: 0,
+              };
+              costs.totalCost =
+                costs.inputCost + costs.cachedInputCost + costs.outputCost;
+
+              console.log("costs", costs);
+
+              await writer.write(
+                encoder.encode(
+                  `data: ${JSON.stringify({ type: "costs", ...costs })}\n\n`
+                )
               );
-
-              if (pricing) {
-                const nonCachedTokens =
-                  input_tokens - (input_tokens_details?.cached_tokens || 0);
-                costs = {
-                  inputCost: nonCachedTokens * (pricing.input / 1000000),
-                  cachedInputCost: pricing.cachedInput
-                    ? (input_tokens_details?.cached_tokens || 0) *
-                      (pricing.cachedInput / 1000000)
-                    : 0,
-                  outputCost: output_tokens * (pricing.output / 1000000),
-                  totalCost: 0,
-                };
-                costs.totalCost =
-                  costs.inputCost + costs.cachedInputCost + costs.outputCost;
-
-                await writer.write(
-                  encoder.encode(
-                    `data: ${JSON.stringify({ type: "costs", ...costs })}\n\n`
-                  )
-                );
-              }
             }
           }
         };
@@ -235,16 +233,12 @@ export async function POST(req: NextRequest) {
   });
 
   const usage = response.usage;
-  const modelName = response.model;
-  const pricing = modelPricing.find((item) => item.models.includes(modelName));
 
-  if (pricing && usage) {
+  if (usage) {
     const cachedTokens = usage.input_tokens_details?.cached_tokens || 0;
     const nonCachedTokens = usage.input_tokens - cachedTokens;
     const inputCost = nonCachedTokens * (pricing.input / 1000000);
-    const cachedInputCost = pricing.cachedInput
-      ? cachedTokens * (pricing.cachedInput / 1000000)
-      : 0;
+    const cachedInputCost = cachedTokens * (pricing.cacheread / 1000000);
     const outputCost = usage.output_tokens * (pricing.output / 1000000);
 
     const totalCost = inputCost + cachedInputCost + outputCost;

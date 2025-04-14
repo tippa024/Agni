@@ -5,8 +5,7 @@ import Text from "@/Mediums/Text/Components/text";
 import { getLocation } from "./location";
 import Chat from "@/Mediums/Chat/Components/chat";
 import Header from "./components/Header";
-import { ChatActions, ChatState, Message, UserPreferences, conversationHistory } from "@/Mediums/Chat/Utils/prompt&type";
-
+import { getSupportedModels, Message, UserPreferences, conversationHistory, supportedModels } from "@/Mediums/Chat/Utils/prompt&type";
 
 console.log("Page Rendered");
 
@@ -18,12 +17,10 @@ export default function Home() {
   const [userPreferences, setUserPreferences] = useState<UserPreferences>({
     searchEnabled: false,
     context: false,
-    model: ["gpt-4o-mini", "OpenAI"] as ["gpt-4o-mini", "OpenAI"] | ["claude-3-5-haiku-20241022", "Anthropic"] | ["claude-3-5-sonnet-20241022", "Anthropic"],
+    model: getSupportedModels()[0]
   });
   const [currentProcessingStep, setCurrentProcessingStep] = useState("");
   const [conversationHistory, setConversationHistory] = useState<conversationHistory[]>([]);
-
-
 
 
   const [locationOn, setLocationOn] = useState<boolean>(false);

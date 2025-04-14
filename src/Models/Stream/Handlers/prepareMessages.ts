@@ -3,7 +3,6 @@ import { Message } from "@/Mediums/Chat/Utils/prompt&type";
 export function StreamlineConversationForAPI(
   conversationHistory: Array<Pick<Message, "role" | "content"> | Message>
 ): Array<Pick<Message, "role" | "content">> {
-  console.log("StreamlineConversationForAPI", conversationHistory);
   return conversationHistory
     .filter((msg) => msg.role !== "system")
     .reduce(

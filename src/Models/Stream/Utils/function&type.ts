@@ -56,10 +56,10 @@ export async function createStreamFromResponse(
 
               if (data.type === "costs") {
                 // Update costs from the stream and format as currency (USD)
-                inputCost = formatAsCurrency(data.inputCost);
-                cachedInputCost = formatAsCurrency(data.cachedInputCost);
-                outputCost = formatAsCurrency(data.outputCost);
-                totalCost = formatAsCurrency(data.totalCost);
+                inputCost = data.inputCost;
+                cachedInputCost = data.cachedInputCost;
+                outputCost = data.outputCost;
+                totalCost = data.totalCost;
               } else if (data.type === "content" && data.content) {
                 if (onChunk) onChunk(data.content);
                 yield data.content;

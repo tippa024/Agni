@@ -1,14 +1,6 @@
-import { memo, useEffect, useState } from "react";
+import { memo } from "react";
 
 const SendButton = function SendButton({ showSendButton }: { showSendButton: boolean }) {
-    const [prevShowSendButton, setPrevShowSendButton] = useState(showSendButton);
-    useEffect(() => {
-        if (showSendButton !== prevShowSendButton) {
-        } else {
-            console.log("Send Button Rendered for unknown reason", Date.now());
-        }
-        setPrevShowSendButton(showSendButton);
-    }, [showSendButton, prevShowSendButton]);
 
     return (
         <div className="transition-all duration-300 ease-out opacity-0 scale-90 origin-center"

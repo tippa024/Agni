@@ -3,7 +3,7 @@ import { Source_Serif_4 } from 'next/font/google';
 import { MessageBubbleProps } from '@/Mediums/Chat/Utils/prompt&type';
 import UserMessageinChat from './Children/UserMessage';
 import AssistantMessageinChat from './Children/AssistantMessage/AssitantMessage';
-import CurrentStepAndTime from './Children/CurrentStep&Time';
+import AssistantMessageHeader from './Children/CurrentStep&Time';
 import { memo } from 'react';
 const sourceSerif4 = Source_Serif_4({
     subsets: ['latin'],
@@ -24,7 +24,7 @@ const MessageBubble = function MessageBubble({
     }
     return (
         <>
-            <CurrentStepAndTime messageComponentIndex={messageComponentIndex} currentProcessingStep={currentProcessingStep} font={sourceSerif4} timestamp={message.timestamp} />
+            <AssistantMessageHeader messageComponentIndex={messageComponentIndex} currentProcessingStep={currentProcessingStep} font={sourceSerif4} timestamp={message.timestamp} />
             <AssistantMessageinChat message={message} messageComponentIndex={messageComponentIndex} currentProcessingStep={currentProcessingStep} font={sourceSerif4} />
         </>
     );

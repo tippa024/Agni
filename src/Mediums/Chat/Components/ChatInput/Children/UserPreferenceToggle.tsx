@@ -1,4 +1,4 @@
-import { UserPreferences } from "@/Mediums/Chat/Utils/prompt&type";
+import { UserPreferences, getSupportedModels } from "@/Mediums/Chat/Utils/prompt&type";
 import { Switch } from "@/Mediums/Chat/Components/ChatInput/ui/Switch";
 import { Label } from "@/Mediums/Chat/Components/ChatInput/ui/Label";
 import { Dispatch, memo, SetStateAction, useEffect, useState } from "react";
@@ -51,7 +51,7 @@ const UserPreferenceToggle = function UserPreferenceToggle({
                     {/* Model Selector */}
                     <div className="flex items-center gap-2">
                         <div className="w-6 h-6 flex ml-2.5 items-center justify-center">
-                            {userPreferences.model[1] === "OpenAI" ? (
+                            {userPreferences.model.provider === "OpenAI" ? (
                                 <svg viewBox="0 0 24 24" className="w-5 h-5">
                                     <path
                                         fill="currentColor"
@@ -69,28 +69,30 @@ const UserPreferenceToggle = function UserPreferenceToggle({
                             )}
                         </div>
                         <select
-                            value={userPreferences.model[0]}
+                            value={userPreferences.model.apiCallName}
                             onChange={(e) => {
-                                const value = e.target.value;
-                                if (value === "gpt-4o-mini") {
-                                    setUserPreferences(prev => ({ ...prev, model: ["gpt-4o-mini", "OpenAI"] }));
-                                } else if (value === "gpt-4o") {
-                                    setUserPreferences(prev => ({ ...prev, model: ["gpt-4o", "OpenAI"] }));
-                                } else if (value === "claude-3-5-haiku-20241022") {
-                                    setUserPreferences(prev => ({ ...prev, model: ["claude-3-5-haiku-20241022", "Anthropic"] }));
-                                } else if (value === "claude-3-5-sonnet-20241022") {
-                                    setUserPreferences(prev => ({ ...prev, model: ["claude-3-5-sonnet-20241022", "Anthropic"] }));
+                                const selectedModel = e.target.value;
+                                const modelDetails = getSupportedModels().find(
+                                    model => model.apiCallName === selectedModel
+                                );
+                                if (modelDetails) {
+                                    setUserPreferences(prev => ({
+                                        ...prev,
+                                        model: modelDetails
+                                    }));
                                 }
                             }}
-                            className="appearance-none text-sm bg-transparent border border-white rounded-lg px-1 mx-1.5 py-1.5 
-                         focus:outline-none focus:border-[#4A4235]/40 focus:ring-1 focus:ring-[#4A4235]/20
-                         cursor-pointer transition-all duration-100 hover:border-[#4A4235]/30
-                         text-[#4A4235] font-medium max-w-[97px]"
+                            className="bg-transparent text-sm outline-none px-2 py-1 rounded-md appearance-none cursor-pointer"
                         >
-                            <option value="claude-3-5-haiku-20241022">Haiku 3.5</option>
-                            <option value="gpt-4o-mini">4o Mini</option>
-                            <option value="gpt-4o">4o</option>
-                            <option value="claude-3-5-sonnet-20241022">Sonnet 3.5</option>
+                            {getSupportedModels().map((model, index) => (
+                                <option
+                                    key={index}
+                                    value={model.apiCallName}
+                                    className={model.reasoning ? 'font-bold' : ''}
+                                >
+                                    {model.reasoning ? '✦ ' : ''}{model.name}
+                                </option>
+                            ))}
                         </select>
                     </div>
                 </div>

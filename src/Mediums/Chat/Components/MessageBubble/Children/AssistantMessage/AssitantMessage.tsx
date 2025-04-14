@@ -1,5 +1,5 @@
 import SearchResultsinChat from "./SearchResults";
-import { Reasoning, TextOutput, CopyButton } from "./Children";
+import { Reasoning, TextOutput, CopyButton, AdditionalInfo } from "./Children";
 import { useCallback, useEffect, useState } from "react";
 import { Message } from "@/Mediums/Chat/Utils/prompt&type";
 import { memo } from "react";
@@ -48,9 +48,9 @@ const AssistantMessageinChat = function AssistantMessageinChat({ message, messag
                 (
                     <div>
                         <TextOutput content={segmentedMessageContent.answer} thinkingVisible={!!segmentedMessageContent.thinking} />
-                        <CopyButton content={segmentedMessageContent.answer} />
-                        <div className="text-xs text-[#2C2C2C]/60">
-                            {message.additionalInfo}
+                        <div className="flex flex-row gap-2">
+                            <CopyButton content={segmentedMessageContent.answer} />
+                            <AdditionalInfo message={message} />
                         </div>
                     </div>
                 )
@@ -59,6 +59,7 @@ const AssistantMessageinChat = function AssistantMessageinChat({ message, messag
                 <div>
                     <TextOutput content={message.content} thinkingVisible={false} />
                     <CopyButton content={message.content} />
+                    <AdditionalInfo message={message} />
                 </div>
             )}
         </div>
