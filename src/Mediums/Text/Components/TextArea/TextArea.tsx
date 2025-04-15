@@ -2,10 +2,10 @@ import { Dispatch, SetStateAction, useCallback, useEffect, useRef, useState } fr
 import { SynthesizeAPI } from "@/Context/Utils/Synthesize/apiCall";
 import { MarkdownAPI } from "@/Context/Utils/Markdown/apiCall";
 import { handleRawTextInput } from "../../master";
-import { conversationHistory } from "@/Mediums/Chat/Utils/prompt&type";
+import {  Message } from "@/Mediums/Chat/Utils/prompt&type";
 
 
-const TextArea = ({ text, setText, TextConversationHistory, setTextConversationHistory }: { text: string, setText: Dispatch<SetStateAction<string>>, TextConversationHistory: conversationHistory[], setTextConversationHistory: Dispatch<SetStateAction<conversationHistory[]>> }) => {
+const TextArea = ({ text, setText, TextConversation, setTextConversation }: { text: string, setText: Dispatch<SetStateAction<string>>, TextConversation: Message[], setTextConversation: Dispatch<SetStateAction<Message[]>> }) => {
 
     const textAreaRef = useRef<HTMLTextAreaElement>(null);
 
@@ -22,7 +22,7 @@ const TextArea = ({ text, setText, TextConversationHistory, setTextConversationH
         //(Ctrl+B)
         if ((e.metaKey || e.ctrlKey) && e.key === 'b') {
             e.preventDefault();
-            await handleRawTextInput(text, setText, TextConversationHistory, setTextConversationHistory);
+            await handleRawTextInput(text, setText, TextConversation, setTextConversation);
         }
 
         // Open save confirmation (Ctrl+Enter)

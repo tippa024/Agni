@@ -1,13 +1,13 @@
 import { SearchOutput, ModelForRefinement } from "../prompt&type";
 import { refineParametersForOpenPerplex } from "./refinePrameters";
 import { OpenPerplexSearchParameters } from "./prompt&type";
-import { conversationHistory } from "@/Mediums/Chat/Utils/prompt&type";
+import { Message } from "@/Mediums/Chat/Utils/prompt&type";
 import { fallbackSearchParametersForOpenPerplex } from "./refinePrameters";
 
 export const OpenPerplexAPI = {
   Search: async (
     userQuery: string,
-    conversationHistory: conversationHistory[],
+    conversation: Message[],
     currentProcessingStep: (step: string) => void,
     refimenmentNeeded: boolean,
     modelForRefinement: ModelForRefinement
@@ -15,7 +15,7 @@ export const OpenPerplexAPI = {
     console.log(
       "OpenPerplex Refine Search API Client - Starting",
       userQuery,
-      conversationHistory,
+      conversation,
       refimenmentNeeded,
       modelForRefinement
     );
@@ -32,7 +32,7 @@ export const OpenPerplexAPI = {
       currentProcessingStep("Refining search parameters");
       const refinedParameters = await refineParametersForOpenPerplex.search(
         userQuery,
-        conversationHistory,
+        conversation,
         currentProcessingStep,
         modelForRefinement
       );

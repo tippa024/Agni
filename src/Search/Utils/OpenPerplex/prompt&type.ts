@@ -232,6 +232,11 @@ export const OpenPerplexSearchQueryRefinementPrompt: Message = {
   
   Provide your response as a JSON object (no other text) with the refined query and all applicable search parameters.
   Please consider the chat history given by the user to provide the most optimal search parameters.`,
+  timestamp: new Date().toLocaleString("en-GB", {
+    hour: "2-digit",
+    minute: "2-digit",
+    second: "2-digit",
+  }),
 };
 
 export interface OpenPerplexCustomSearchSchemaFormatForOpenAI {

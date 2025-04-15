@@ -1,13 +1,13 @@
-import { conversationHistory, Message } from "@/Mediums/Chat/Utils/prompt&type";
+import { Message } from "@/Mediums/Chat/Utils/prompt&type";
 import { SynthesizeConversationToMarkDownSystemPrompt } from "./prompt&type";
 
 export const SynthesizeAPI = {
   ConversationToMarkDown: async (
-    conversationHistory: conversationHistory[],
+    conversation: Message[],
     model: string,
     modelProvider: string
   ) => {
-    if (conversationHistory.length === 0) {
+    if (conversation.length === 0) {
       console.log("Conversation history is empty, skipping synthesis");
       return null;
     }
@@ -15,13 +15,13 @@ export const SynthesizeAPI = {
     console.log(
       "Synthesizing conversation to markdown using Anthropic model API call starting",
       model,
-      conversationHistory
+      conversation
     );
 
     const synthesisMessage = {
       role: "user",
       content: `
-      ${JSON.stringify(conversationHistory, null, 2)}
+      ${JSON.stringify(conversation, null, 2)}
       `,
     } as Message;
 

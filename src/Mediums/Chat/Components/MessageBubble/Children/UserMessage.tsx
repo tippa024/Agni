@@ -1,5 +1,5 @@
 import { Message } from "@/Mediums/Chat/Utils/prompt&type";
-import { useEffect, useState, memo } from "react";
+import { memo } from "react";
 
 const UserMessageinChat = function UserMessageinChat({ message, font }: { message: Message, font: { className: string } }) {
 

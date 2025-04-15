@@ -1,11 +1,11 @@
 import { OpenPerplexAPI } from "@/Search/Utils/OpenPerplex/apiCall";
 import { ModelForRefinement, SearchOutput } from "@/Search/Utils/prompt&type";
-import { conversationHistory } from "@/Mediums/Chat/Utils/prompt&type";
+import { Message } from "@/Mediums/Chat/Utils/prompt&type";
 
 export const getSearch = async (
   query: string,
   searchProvider: string,
-  conversationHistory: conversationHistory[],
+  conversation: Message[],
   currentProcessingStep: (step: string) => void,
   refimenmentNeeded: boolean,
   modelForRefinement: ModelForRefinement
@@ -22,7 +22,7 @@ export const getSearch = async (
     try {
       const response = await OpenPerplexAPI.Search(
         query,
-        conversationHistory,
+        conversation,
         currentProcessingStep,
         refimenmentNeeded,
         modelForRefinement

@@ -1,9 +1,7 @@
 import { useRef, useEffect, SetStateAction, Dispatch, memo, useCallback, useMemo } from "react";
 import UserInput from "./ChatInput/ChatInput";
-import { UserPreferences, Message, conversationHistory } from "../Utils/prompt&type";
+import { UserPreferences, Message } from "../Utils/prompt&type";
 import { handleRawUserInput } from "../master";
-import { SynthesizeAPI } from "@/Context/Utils/Synthesize/apiCall";
-import { MarkdownAPI } from "@/Context/Utils/Markdown/apiCall";
 import { conversationHistoryAPI } from "@/Context/Utils/ConversationHistory/apiCall";
 import MessageBubble from "./MessageBubble/MessageBubble";
 import { Source_Serif_4 } from "next/font/google";
@@ -19,12 +17,10 @@ function Chat(props: {
     messages: Message[];
     userPreferences: UserPreferences;
     currentProcessingStep: string;
-    conversationHistory: conversationHistory[];
     location: { latitude: number; longitude: number };
     setMessages: Dispatch<SetStateAction<Message[]>>;
     setInput: Dispatch<SetStateAction<string>>;
     setCurrentProcessingStep: Dispatch<SetStateAction<string>>;
-    setConversationHistory: Dispatch<SetStateAction<conversationHistory[]>>;
     setUserPreferences: Dispatch<SetStateAction<UserPreferences>>;
 }) {
 
@@ -38,13 +34,11 @@ function Chat(props: {
                 messages: props.messages,
                 userPreferences: props.userPreferences,
                 currentProcessingStep: props.currentProcessingStep,
-                conversationHistory: props.conversationHistory,
                 location: props.location ? props.location : { latitude: 0, longitude: 0 },
             }),
             {
                 setMessages: props.setMessages,
                 setCurrentProcessingStep: props.setCurrentProcessingStep,
-                setConversationHistory: props.setConversationHistory,
                 setUserPreferences: props.setUserPreferences,
             }
         );
@@ -71,12 +65,12 @@ function Chat(props: {
     }, [props.setUserPreferences]);
 
     const handleSave = useCallback(async () => {
-        const context = await SynthesizeAPI.ConversationToMarkDown(props.conversationHistory, "claude-3-5-sonnet-20241022", "Anthropic");
-        if (context) {
-            await MarkdownAPI.WriteNewToContext(context.filename, context.markdown);
-        }
-        conversationHistoryAPI.addNewMessages(props.conversationHistory);
-    }, [props.conversationHistory]);
+        //const context = await SynthesizeAPI.ConversationToMarkDown(props.messages, "claude-3-5-sonnet-20241022", "Anthropic");
+        //if (context) {
+        //      await MarkdownAPI.WriteNewToContext(context.filename, context.markdown);
+        //    }
+        conversationHistoryAPI.addNewMessages(props.messages);
+    }, [props.messages]);
 
 
     return (

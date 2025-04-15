@@ -1,7 +1,7 @@
-import { conversationHistory } from "@/Mediums/Chat/Utils/prompt&type";
+import { Message } from "@/Mediums/Chat/Utils/prompt&type";
 
 export const conversationHistoryAPI = {
-  addNewMessages: async (conversationHistory: conversationHistory[]) => {
+  addNewMessages: async (conversation: Message[]) => {
     console.log(
       "Adding new messages to conversation history via AddNewMessagesToConversationHistory API Call starting"
     );
@@ -9,7 +9,7 @@ export const conversationHistoryAPI = {
       const response = await fetch(`/api/Context/ConversationHistory/Write`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ conversationHistory }),
+        body: JSON.stringify({ conversation }),
       });
       const data = await response.json();
       console.log("AddNewMessagesToConversationHistory API Response", data);

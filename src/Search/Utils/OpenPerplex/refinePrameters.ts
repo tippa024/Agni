@@ -1,4 +1,4 @@
-import { conversationHistory } from "@/Mediums/Chat/Utils/prompt&type";
+import { Message } from "@/Mediums/Chat/Utils/prompt&type";
 import {
   OpenPerplexSearchQueryRefinementPrompt,
   OpenPerplexSearchParameters,
@@ -23,7 +23,7 @@ export const fallbackSearchParametersForOpenPerplex = {
 export const refineParametersForOpenPerplex = {
   search: async (
     userQuery: string,
-    conversationHistory: conversationHistory[],
+    conversation: Message[],
     currentProcessingStep: (step: string) => void,
     modelForRefinement: ModelForRefinement
   ): Promise<OpenPerplexSearchParameters> => {
@@ -33,7 +33,7 @@ export const refineParametersForOpenPerplex = {
       {
         role: "user",
         content: `Consider the chat history for context: ${JSON.stringify(
-          conversationHistory
+          conversation
         )} and the user query: ${userQuery}`,
       },
     ];

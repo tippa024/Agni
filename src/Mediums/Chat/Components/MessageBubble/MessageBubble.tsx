@@ -22,12 +22,14 @@ const MessageBubble = function MessageBubble({
             <UserMessageinChat message={message} font={sourceSerif4} />
         )
     }
-    return (
-        <>
-            <AssistantMessageHeader messageComponentIndex={messageComponentIndex} currentProcessingStep={currentProcessingStep} font={sourceSerif4} timestamp={message.timestamp} />
-            <AssistantMessageinChat message={message} messageComponentIndex={messageComponentIndex} currentProcessingStep={currentProcessingStep} font={sourceSerif4} />
-        </>
-    );
+    if (message.role === 'assistant') {
+        return (
+            <>
+                <AssistantMessageHeader messageComponentIndex={messageComponentIndex} currentProcessingStep={currentProcessingStep} font={sourceSerif4} timestamp={message.timestamp} />
+                <AssistantMessageinChat message={message} />
+            </>
+        );
+    }
 
 };
 

@@ -1,11 +1,11 @@
 'use client';
 
-import { useState, useEffect, Dispatch, SetStateAction } from 'react';
+import { useState, useEffect } from 'react';
 import Text from "@/Mediums/Text/Components/text";
 import { getLocation } from "./location";
 import Chat from "@/Mediums/Chat/Components/chat";
 import Header from "./components/Header";
-import { getSupportedModels, Message, UserPreferences, conversationHistory, supportedModels } from "@/Mediums/Chat/Utils/prompt&type";
+import { getSupportedModels, Message, UserPreferences } from "@/Mediums/Chat/Utils/prompt&type";
 
 console.log("Page Rendered");
 
@@ -20,7 +20,7 @@ export default function Home() {
     model: getSupportedModels()[0]
   });
   const [currentProcessingStep, setCurrentProcessingStep] = useState("");
-  const [conversationHistory, setConversationHistory] = useState<conversationHistory[]>([]);
+
 
 
   const [locationOn, setLocationOn] = useState<boolean>(false);
@@ -43,7 +43,7 @@ export default function Home() {
   return (
     <main className="flex flex-col min-h-screen w-screen bg-white overflow-hidden overflow-y-auto scrollbar-hide">
       <Header location={location} locationOn={locationOn} mode={mode} setMode={setMode} />
-      {mode === 'chat' ? <Chat input={input} messages={messages} userPreferences={userPreferences} currentProcessingStep={currentProcessingStep} conversationHistory={conversationHistory} location={location} setMessages={setMessages} setInput={setInput} setCurrentProcessingStep={setCurrentProcessingStep} setConversationHistory={setConversationHistory} setUserPreferences={setUserPreferences} /> : (
+      {mode === 'chat' ? <Chat input={input} messages={messages} userPreferences={userPreferences} currentProcessingStep={currentProcessingStep} location={location} setMessages={setMessages} setInput={setInput} setCurrentProcessingStep={setCurrentProcessingStep} setUserPreferences={setUserPreferences} /> : (
         <div className=' bg-white'>
           <Text />
         </div>

@@ -1,26 +1,31 @@
 import SearchResultsinChat from "./SearchResults";
-import { Reasoning, TextOutput, CopyButton, AdditionalInfo } from "./Children";
+import { Reasoning, TextOutput, CopyButton } from "./Children";
 import { useCallback, useEffect, useState } from "react";
 import { Message } from "@/Mediums/Chat/Utils/prompt&type";
 import { memo } from "react";
 
 
 
-const AssistantMessageinChat = function AssistantMessageinChat({ message, messageComponentIndex, currentProcessingStep, font }: { message: Message, messageComponentIndex: number, currentProcessingStep: string | undefined, font: { className: string } }) {
+const AssistantMessageinChat = function AssistantMessageinChat({
+    message,
+}: {
+    message: Message,
+}) {
 
+    if (message.role !== 'assistant') {
+        return null;
+    }
 
     const [isThinkingCollapsed, setIsThinkingCollapsed] = useState(true);
     const [segmentedMessageContent, setSegmentedMessageContent] = useState<{ thinking?: string; answer?: string }>({});
     const [wordCount, setWordCount] = useState(0);
-    const isAssistant = message.role === 'assistant';
-
 
     const handleSetIsThinkingCollapsed = useCallback((value: boolean | ((prevState: boolean) => boolean)) => {
         setIsThinkingCollapsed(value);
     }, []);
 
     useEffect(() => {
-        if (isAssistant && message.content) {
+        if (message.content) {
             const parts = message.content.split(/\n*Reasoning:\s*|\n*Answer:\s*/);
             setSegmentedMessageContent({
                 thinking: parts.length > 1 ? parts[1] : undefined,
@@ -31,11 +36,11 @@ const AssistantMessageinChat = function AssistantMessageinChat({ message, messag
             setSegmentedMessageContent({});
             setWordCount(0);
         }
-    }, [message.content, isAssistant]);
+    }, [message.content]);
 
     return (
         <div className="flex flex-col justify-start">
-            {message.sources && <SearchResultsinChat sources={message.sources} />}
+            {message.context && message.context.sources && message.context.sources.length > 0 && <SearchResultsinChat sources={message.context.sources} />}
 
             {segmentedMessageContent.thinking && (
                 <Reasoning
@@ -48,10 +53,8 @@ const AssistantMessageinChat = function AssistantMessageinChat({ message, messag
                 (
                     <div>
                         <TextOutput content={segmentedMessageContent.answer} thinkingVisible={!!segmentedMessageContent.thinking} />
-                        <div className="flex flex-row gap-2">
-                            <CopyButton content={segmentedMessageContent.answer} />
-                            <AdditionalInfo message={message} />
-                        </div>
+                        <CopyButton content={segmentedMessageContent.answer} />
+
                     </div>
                 )
             }
@@ -59,7 +62,6 @@ const AssistantMessageinChat = function AssistantMessageinChat({ message, messag
                 <div>
                     <TextOutput content={message.content} thinkingVisible={false} />
                     <CopyButton content={message.content} />
-                    <AdditionalInfo message={message} />
                 </div>
             )}
         </div>

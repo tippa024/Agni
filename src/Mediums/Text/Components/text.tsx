@@ -1,7 +1,7 @@
 import { useState } from "react";
 import HeaderOptions from "./Header/HeaderOptions";
 import TextArea from "./TextArea/TextArea";
-import { ChatActions, ChatState, conversationHistory } from "@/Mediums/Chat/Utils/prompt&type";
+import { Message } from "@/Mediums/Chat/Utils/prompt&type";
 
 
 
@@ -12,13 +12,13 @@ export default function Text() {
 
     const [text, setText] = useState("");
 
-    const [textConversationHistory, setTextConversationHistory] = useState<
-        conversationHistory[]
+    const [textConversation, setTextConversation] = useState<
+        Message[]
     >([]);
 
 
     return <div className="flex flex-col h-screen">
         <HeaderOptions text={text} setText={setText} />
-        <TextArea text={text} setText={setText} TextConversationHistory={textConversationHistory} setTextConversationHistory={setTextConversationHistory} />
+        <TextArea text={text} setText={setText} TextConversation={textConversation} setTextConversation={setTextConversation} />
     </div >
 }

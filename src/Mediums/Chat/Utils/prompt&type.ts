@@ -69,18 +69,12 @@ export interface ChatState {
   messages: Message[];
   userPreferences: UserPreferences;
   currentProcessingStep: string;
-  conversationHistory: conversationHistory[];
   location: { latitude: number; longitude: number };
 }
 
 export interface ChatActions {
   setMessages: (messages: Message[] | ((prev: Message[]) => Message[])) => void;
   setCurrentProcessingStep: (currentProcessingStep: string) => void;
-  setConversationHistory: (
-    history:
-      | conversationHistory[]
-      | ((prev: conversationHistory[]) => conversationHistory[])
-  ) => void;
   setUserPreferences: (
     userPreferences:
       | UserPreferences
@@ -88,58 +82,11 @@ export interface ChatActions {
   ) => void;
 }
 
-export interface Message {
-  role: "user" | "assistant" | "system";
-  content: string;
-  timestamp: string;
-  sources?: SearchResult[];
-  additionalInfo?: string;
-}
-
-export interface SearchResult {
-  title?: string;
-  link: string;
-  snippet?: string;
-}
-
-export type conversationHistory =
+export type Message =
   | {
       role: "system";
       content: string;
       timestamp: string;
-    }
-  | {
-      role: "user";
-      content: string;
-      timestamp: string;
-      location: { latitude: number; longitude: number };
-      userPreferences: UserPreferences;
-    }
-  | {
-      role: "assistant";
-      content: string;
-      model: string;
-      modelProvider: string;
-      timestamp: string;
-    }
-  | {
-      role: "developer";
-      content: string;
-      timestamp: string;
-    };
-
-export type conversation =
-  | {
-      role: "system";
-      content: string;
-      timestamp: string;
-    }
-  | {
-      role: "user";
-      content: string;
-      timestamp: string;
-      location: { latitude: number; longitude: number };
-      userPreferences: UserPreferences;
     }
   | {
       role: "assistant";
@@ -153,10 +100,23 @@ export type conversation =
       };
     }
   | {
+      role: "user";
+      content: string;
+      timestamp: string;
+      location: { latitude: number; longitude: number };
+      userPreferences: UserPreferences;
+    }
+  | {
       role: "developer";
       content: string;
       timestamp: string;
     };
+
+export interface SearchResult {
+  title?: string;
+  link: string;
+  snippet?: string;
+}
 
 export interface MessageBubbleProps {
   message: Message;

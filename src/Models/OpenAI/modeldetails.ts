@@ -2,7 +2,7 @@ import { modeloptionsforprovider } from "@/Mediums/Chat/Utils/prompt&type";
 
 export const openaiModelDetails: modeloptionsforprovider[] = [
   {
-    name: "4o-mini",
+    name: "4o-Mini",
     apiCallName: "gpt-4o-mini-2024-07-18",
     reasoning: false,
     pricing: {
@@ -10,6 +10,39 @@ export const openaiModelDetails: modeloptionsforprovider[] = [
       cachewrite: 0.075,
       cacheread: 0.075,
       output: 0.6,
+    },
+  },
+  {
+    name: "4.1-Mini",
+    apiCallName: "gpt-4.1-mini-2025-04-14",
+    reasoning: false,
+    pricing: {
+      input: 0.4,
+      cachewrite: 0.1,
+      cacheread: 0.1,
+      output: 1.6,
+    },
+  },
+  {
+    name: "4.1",
+    apiCallName: "gpt-4.1-2025-04-14",
+    reasoning: false,
+    pricing: {
+      input: 2,
+      cachewrite: 0.5,
+      cacheread: 0.5,
+      output: 8,
+    },
+  },
+  {
+    name: "4.1-Nano",
+    apiCallName: "gpt-4.1-nano-2025-04-14",
+    reasoning: false,
+    pricing: {
+      input: 0.1,
+      cachewrite: 0.025,
+      cacheread: 0.025,
+      output: 0.4,
     },
   },
   {

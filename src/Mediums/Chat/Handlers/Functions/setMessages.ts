@@ -1,15 +1,22 @@
-import { SearchResult, Message } from "../../Utils/prompt&type";
+import {
+  SearchResult,
+  Message,
+  UserPreferences,
+} from "../../Utils/prompt&type";
 import { Dispatch, SetStateAction } from "react";
 
 export const setMessage = {
-  InitialiseNewAssistant: function (
+  NewUserMessage: function (
+    content: string,
+    location: { latitude: number; longitude: number },
+    userPreferences: UserPreferences,
     setMessages: Dispatch<SetStateAction<Message[]>>
   ) {
     setMessages((prev) => [
       ...prev,
       {
-        role: "assistant",
-        content: "",
+        role: "user",
+        content: content,
         timestamp:
           new Date().toLocaleDateString("en-GB") +
           " " +
@@ -18,6 +25,59 @@ export const setMessage = {
             minute: "2-digit",
             second: "2-digit",
           }),
+        location: location,
+        userPreferences: userPreferences,
+      },
+    ]);
+  },
+
+  NewAssistantMessage: function (
+    content: string,
+    model: string,
+    modelProvider: string,
+    setMessages: Dispatch<SetStateAction<Message[]>>
+  ) {
+    setMessages((prev) => [
+      ...prev,
+      {
+        role: "assistant",
+        content: content,
+        model: model,
+        modelProvider: modelProvider,
+        timestamp:
+          new Date().toLocaleDateString("en-GB") +
+          " " +
+          new Date().toLocaleTimeString([], {
+            hour: "2-digit",
+            minute: "2-digit",
+            second: "2-digit",
+          }),
+      },
+    ]);
+  },
+
+  InitialiseNewAssistant: function (
+    setMessages: Dispatch<SetStateAction<Message[]>>
+  ) {
+    setMessages((prev) => [
+      ...prev,
+      {
+        role: "assistant",
+        content: "",
+        model: "",
+        modelProvider: "",
+        timestamp:
+          new Date().toLocaleDateString("en-GB") +
+          " " +
+          new Date().toLocaleTimeString([], {
+            hour: "2-digit",
+            minute: "2-digit",
+            second: "2-digit",
+          }),
+        context: {
+          reasoning: "",
+          sources: [],
+        },
       },
     ]);
   },
@@ -48,28 +108,6 @@ export const setMessage = {
     });
   },
 
-  NewRoleAndContent: function (
-    role: "user" | "assistant",
-    content: string,
-    setMessages: Dispatch<SetStateAction<Message[]>>
-  ) {
-    setMessages((prev) => [
-      ...prev,
-      {
-        role: role,
-        content: content,
-        timestamp:
-          new Date().toLocaleDateString("en-GB") +
-          " " +
-          new Date().toLocaleTimeString([], {
-            hour: "2-digit",
-            minute: "2-digit",
-            second: "2-digit",
-          }),
-      },
-    ]);
-  },
-
   SourcesToCurrent: function (
     sources: SearchResult[],
     setMessages: Dispatch<SetStateAction<Message[]>>
@@ -78,25 +116,11 @@ export const setMessage = {
       const newMessages = [...prev];
       const lastMessage = newMessages[newMessages.length - 1];
       if (lastMessage && lastMessage.role === "assistant") {
-        if (sources.length > 0) {
-          lastMessage.sources = sources;
+        if (sources && lastMessage.context) {
+          lastMessage.context.sources = sources;
         } else {
-          lastMessage.sources = [];
+          console.log("sources or lastMessage.context is undefined");
         }
-      }
-      return newMessages;
-    });
-  },
-  AddCostToCurrent: function (
-    cost: number,
-    setMessages: Dispatch<SetStateAction<Message[]>>
-  ) {
-    console.log("setting cost to current message", cost);
-    setMessages((prev) => {
-      const newMessages = [...prev];
-      const lastMessage = newMessages[newMessages.length - 1];
-      if (lastMessage && lastMessage.role === "assistant") {
-        lastMessage.additionalInfo = `${cost.toFixed(6)} $`;
       }
       return newMessages;
     });

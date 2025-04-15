@@ -5,7 +5,6 @@ import {
 } from "@/Search/Utils/prompt&type";
 
 import { setMessage } from "./Handlers/Functions/setMessages";
-import { setConversationHistory } from "./Handlers/Functions/setConversation";
 
 import { getSearch } from "@/Search/Handlers/get";
 
@@ -33,7 +32,12 @@ export async function handleRawUserInput(
 
   const userMessage = state.input.trim();
 
-  setMessage.NewRoleAndContent("user", userMessage, actions.setMessages);
+  setMessage.NewUserMessage(
+    userMessage,
+    state.location,
+    state.userPreferences,
+    actions.setMessages
+  );
 
   setMessage.InitialiseNewAssistant(actions.setMessages);
 
@@ -48,7 +52,7 @@ export async function handleRawUserInput(
           const searchOutput = (await getSearch(
             userMessage,
             state.userPreferences.searchProvider,
-            state.conversationHistory,
+            state.messages,
             actions.setCurrentProcessingStep,
             true,
             { model: ["gpt-4o-mini", "OpenAI"] }
@@ -73,7 +77,7 @@ export async function handleRawUserInput(
 
     console.log(
       "Master Handler concluding with model:",
-      state.userPreferences.model.apiCallName,
+      state.userPreferences.model.name,
       "from",
       state.userPreferences.model.provider
     );
@@ -89,7 +93,7 @@ export async function handleRawUserInput(
         {
           userMessage: contextualizedInput,
           systemMessage: systemMessage.content,
-          conversationHistory: state.conversationHistory,
+          conversationHistory: state.messages,
           context: state.userPreferences.context,
           model: state.userPreferences.model,
         },
@@ -107,27 +111,6 @@ export async function handleRawUserInput(
         }, 5);
       }
       actions.setCurrentProcessingStep("");
-
-      setMessage.AddCostToCurrent(
-        parseFloat(data.getTotalCost()),
-        actions.setMessages
-      );
-
-      setConversationHistory.AddUserMessage(
-        userMessage,
-        state.location,
-        state.userPreferences,
-        actions.setConversationHistory
-      );
-
-      if (content.length > 0) {
-        setConversationHistory.AddAssistantMessage(
-          content,
-          state.userPreferences.model.apiCallName,
-          state.userPreferences.model.provider,
-          actions.setConversationHistory
-        );
-      }
     } catch (error) {
       setMessage.UpdateAssistantContentandTimeStamp(
         "Daya chesi console log nu check chesukondi",
@@ -138,17 +121,12 @@ export async function handleRawUserInput(
   } catch (error) {
     console.error("Chat Submit Handler - Error:", error);
     actions.setCurrentProcessingStep("");
-    setMessage.NewRoleAndContent(
-      "assistant",
+    setMessage.NewAssistantMessage(
       "I apologize, but I encountered an error while processing your request. Please try again." +
         error,
-      actions.setMessages
-    );
-    setConversationHistory.AddAssistantMessage(
-      "I apologize, but I encountered an error while processing your request. Please try again.",
       state.userPreferences.model.apiCallName,
       state.userPreferences.model.provider,
-      actions.setConversationHistory
+      actions.setMessages
     );
   }
 }

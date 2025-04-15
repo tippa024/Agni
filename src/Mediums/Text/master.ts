@@ -2,13 +2,13 @@ import { getModelStream } from "@/Models/Stream/Handlers/getStream";
 import { SystemMessageForText } from "./Utils/promt&type";
 import { Dispatch, useState } from "react";
 import { SetStateAction } from "react";
-import { conversationHistory } from "@/Mediums/Chat/Utils/prompt&type";
+import { Message } from "@/Mediums/Chat/Utils/prompt&type";
 
 export const handleRawTextInput = async (
   input: string,
   setText: Dispatch<SetStateAction<string>>,
-  textConversationHistory: conversationHistory[],
-  setTextConversationHistory: Dispatch<SetStateAction<conversationHistory[]>>
+  textConversation: Message[],
+  setTextConversation: Dispatch<SetStateAction<Message[]>>
 ) => {
   let contextMessage = "";
 
@@ -66,8 +66,14 @@ export const handleRawTextInput = async (
     {
       userMessage: finalMessage,
       systemMessage: SystemMessageForText.content,
-      conversationHistory: textConversationHistory,
-      model: "gpt-4o",
+      conversationHistory: textConversation,
+      model: {
+        name: "gpt-4o-mini",
+        apiCallName: "gpt-4o-mini",
+        reasoning: false,
+        pricing: { input: 0, cachewrite: null, cacheread: null, output: 0 },
+        provider: "OpenAI",
+      },
       context: false,
     },
     () => {}
@@ -77,8 +83,8 @@ export const handleRawTextInput = async (
     setText((prev) => prev + chunk);
     assistantResponse += chunk;
   }
-  setTextConversationHistory([
-    ...textConversationHistory,
+  setTextConversation([
+    ...textConversation,
     {
       role: "user",
       content: userQuestion || "",
@@ -87,7 +93,13 @@ export const handleRawTextInput = async (
       userPreferences: {
         searchEnabled: false,
         context: false,
-        model: ["gpt-4o-mini", "OpenAI"],
+        model: {
+          name: "gpt-4o-mini",
+          apiCallName: "gpt-4o-mini",
+          reasoning: false,
+          pricing: { input: 0, cachewrite: null, cacheread: null, output: 0 },
+          provider: "OpenAI",
+        },
       },
     },
     {
@@ -99,7 +111,7 @@ export const handleRawTextInput = async (
     },
   ]);
 
-  console.log("textConversationHistory", textConversationHistory);
+  console.log("textConversation", textConversation);
 
   return null;
 };
