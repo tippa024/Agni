@@ -1,10 +1,9 @@
-import { Message } from "@/Mediums/Chat/Utils/prompt&type";
+import { Message, supportedModels } from "@/Mediums/Chat/Utils/prompt&type";
 import {
   OpenPerplexSearchQueryRefinementPrompt,
   OpenPerplexSearchParameters,
   OpenPerplexSearchParametersSchemaForOpenAI,
 } from "./prompt&type";
-import { ModelForRefinement } from "../prompt&type";
 
 export const fallbackSearchParametersForOpenPerplex = {
   query: "",
@@ -25,9 +24,13 @@ export const refineParametersForOpenPerplex = {
     userQuery: string,
     conversation: Message[],
     currentProcessingStep: (step: string) => void,
-    modelForRefinement: ModelForRefinement
+    modelForRefinement: supportedModels
   ): Promise<OpenPerplexSearchParameters> => {
-    console.log("Refining parameters for OpenPerplex Search");
+    console.log(
+      "Refining parameters for OpenPerplex Search",
+      modelForRefinement
+    );
+
     const refimentmessages = [
       OpenPerplexSearchQueryRefinementPrompt,
       {
@@ -38,7 +41,7 @@ export const refineParametersForOpenPerplex = {
       },
     ];
 
-    if (modelForRefinement.model[1] === "OpenAI") {
+    if (modelForRefinement.provider === "OpenAI") {
       currentProcessingStep("Refining search parameters with OpenAI");
       console.log("Starting OpenAI API call for Search Query Refinement");
       try {
@@ -50,7 +53,7 @@ export const refineParametersForOpenPerplex = {
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({
               messages: refimentmessages,
-              model: modelForRefinement.model[0],
+              model: modelForRefinement.apiCallName,
               response_format: {
                 type: "json_schema",
                 json_schema: OpenPerplexSearchParametersSchemaForOpenAI,
@@ -86,7 +89,53 @@ export const refineParametersForOpenPerplex = {
         );
         throw error;
       }
+    } else if (modelForRefinement.provider === "Anthropic") {
+      currentProcessingStep("Refining search parameters with Anthropic");
+      console.log("Starting Anthropic API call for Search Query Refinement");
+      try {
+        // Implementation for Anthropic models
+        const response = await fetch(
+          "/api/Models/Anthropic/SearchQueryRefinement",
+          {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              messages: refimentmessages,
+              model: modelForRefinement.apiCallName,
+              temperature: 0.2,
+              max_tokens: 1000,
+            }),
+          }
+        );
+
+        if (!response.ok) {
+          console.error(
+            "Query Refinement using Anthropic API - Failed",
+            response.statusText
+          );
+          throw new Error(
+            `Failed to get response from Search Query Refinement: ${response.statusText}`
+          );
+        }
+
+        const data = await response.json();
+
+        console.log(
+          "Anthropic API call for Search Query Refinement success, data",
+          data
+        );
+
+        return data as OpenPerplexSearchParameters;
+      } catch (error: any) {
+        console.error(
+          "Error in UserQueryRefinementForOpenPerplexSearch with Anthropic:",
+          error
+        );
+        throw error;
+      }
     }
-    throw new Error("modelProvider not supported for refinement");
+    throw new Error(
+      `Model provider ${modelForRefinement.provider} not supported for refinement`
+    );
   },
 };

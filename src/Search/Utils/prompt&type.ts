@@ -1,4 +1,5 @@
 import { SearchResult } from "@/Mediums/Chat/Utils/prompt&type";
+import { supportedModels } from "@/Mediums/Chat/Utils/prompt&type";
 
 export interface SearchParameters {
   query: string;
@@ -23,11 +24,3 @@ export interface SearchOutput {
 
 export const contextualisedInputPromptAfterSearch =
   "Synthesis the search results and extracted content attached below to answer the user's initial question promptly. Keep as much of the original content as possible.";
-
-export interface ModelForRefinement {
-  model:
-    | ["gpt-4o-mini", "OpenAI"]
-    | ["claude-3-5-haiku-20241022", "Anthropic"]
-    | ["gpt-4o", "OpenAI"]
-    | ["claude-3-5-sonnet-20241022", "Anthropic"];
-}

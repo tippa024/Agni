@@ -2,7 +2,8 @@ import { Message, supportedModels } from "@/Mediums/Chat/Utils/prompt&type";
 import { StreamlineConversationForAPI } from "./prepareMessages";
 import { streamTextAPI } from "../Utils/apiCall";
 import { MarkdownAPI } from "@/Context/Utils/Markdown/apiCall";
-
+import { getAstrologicalData } from "@/lib/Astrology/handler";
+import { astrologyPrompt } from "@/lib/Astrology/prompt&type";
 export async function getModelStream(
   provider: string,
   params: {
@@ -11,9 +12,19 @@ export async function getModelStream(
     conversationHistory: Message[];
     context: boolean;
     model: supportedModels;
+    location: { latitude: number; longitude: number };
   },
   currentProcessingStep: (step: string) => void
 ) {
+  const { astrologicalDataResult } = await getAstrologicalData(
+    params.location.latitude,
+    params.location.longitude
+  );
+
+  const astrologicalPrompt = astrologyPrompt(astrologicalDataResult);
+
+  params.systemMessage += astrologicalPrompt;
+
   if (params.context) {
     currentProcessingStep("loading context");
     try {
@@ -28,7 +39,6 @@ export async function getModelStream(
 
   const model = params.model;
   const userMessage = params.userMessage;
-  const systemMessage = params.systemMessage;
   let messagesForModel: Array<Pick<Message, "role" | "content">> = [];
 
   if (params.conversationHistory) {
@@ -49,16 +59,12 @@ export async function getModelStream(
   }
   currentProcessingStep(`${provider} response`);
 
-  console.log(`Starting ${provider} API call function`);
-  console.log("messagesForModel", messagesForModel);
   try {
     const data = await streamTextAPI[provider as keyof typeof streamTextAPI](
-      systemMessage,
+      params.systemMessage,
       messagesForModel,
       model
     );
-
-    console.log(`${provider} API call function success`);
 
     return {
       stream: () => data.stream(),

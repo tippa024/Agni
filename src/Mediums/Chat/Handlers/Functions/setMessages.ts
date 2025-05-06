@@ -17,14 +17,14 @@ export const setMessage = {
       {
         role: "user",
         content: content,
-        timestamp:
-          new Date().toLocaleDateString("en-GB") +
-          " " +
-          new Date().toLocaleTimeString([], {
-            hour: "2-digit",
-            minute: "2-digit",
-            second: "2-digit",
-          }),
+        timestamp: {
+          year: new Date().getFullYear(),
+          month: new Date().getMonth(),
+          day: new Date().getDate(),
+          hour: new Date().getHours(),
+          minute: new Date().getMinutes(),
+          second: new Date().getSeconds(),
+        },
         location: location,
         userPreferences: userPreferences,
       },
@@ -44,14 +44,14 @@ export const setMessage = {
         content: content,
         model: model,
         modelProvider: modelProvider,
-        timestamp:
-          new Date().toLocaleDateString("en-GB") +
-          " " +
-          new Date().toLocaleTimeString([], {
-            hour: "2-digit",
-            minute: "2-digit",
-            second: "2-digit",
-          }),
+        timestamp: {
+          year: new Date().getFullYear(),
+          month: new Date().getMonth(),
+          day: new Date().getDate(),
+          hour: new Date().getHours(),
+          minute: new Date().getMinutes(),
+          second: new Date().getSeconds(),
+        },
       },
     ]);
   },
@@ -66,14 +66,14 @@ export const setMessage = {
         content: "",
         model: "",
         modelProvider: "",
-        timestamp:
-          new Date().toLocaleDateString("en-GB") +
-          " " +
-          new Date().toLocaleTimeString([], {
-            hour: "2-digit",
-            minute: "2-digit",
-            second: "2-digit",
-          }),
+        timestamp: {
+          year: new Date().getFullYear(),
+          month: new Date().getMonth(),
+          day: new Date().getDate(),
+          hour: new Date().getHours(),
+          minute: new Date().getMinutes(),
+          second: new Date().getSeconds(),
+        },
         context: {
           reasoning: "",
           sources: [],
@@ -86,14 +86,14 @@ export const setMessage = {
     content: string,
     setMessages: Dispatch<SetStateAction<Message[]>>
   ) {
-    const currentTime =
-      new Date().toLocaleDateString("en-GB") +
-      " " +
-      new Date().toLocaleTimeString([], {
-        hour: "2-digit",
-        minute: "2-digit",
-        second: "2-digit",
-      });
+    const currentTime = {
+      year: new Date().getFullYear(),
+      month: new Date().getMonth(),
+      day: new Date().getDate(),
+      hour: new Date().getHours(),
+      minute: new Date().getMinutes(),
+      second: new Date().getSeconds(),
+    };
     setMessages((prev) => {
       return prev.map((msg, index) => {
         if (index === prev.length - 1 && msg.role === "assistant") {

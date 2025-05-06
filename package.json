@@ -19,6 +19,7 @@
     "@types/react": "^18.3.18",
     "@vercel/analytics": "^1.2.2",
     "ai": "^3.4.33",
+    "astrologyapi": "^1.0.1",
     "eslint": "^8.57.0",
     "next": "^15.2.1",
     "openai": "^4.93.0",
@@ -27,6 +28,8 @@
     "react-markdown": "^9.0.1",
     "rehype-raw": "^7.0.0",
     "remark-math": "^6.0.0",
+    "sweph": "^2.10.3-4",
+    "swisseph": "^0.5.17",
     "tailwindcss": "^3.4.1",
     "typescript": "^5.3.3",
     "zod": "^3.22.4"

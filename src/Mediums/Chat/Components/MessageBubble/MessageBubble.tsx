@@ -1,4 +1,3 @@
-
 import { Source_Serif_4 } from 'next/font/google';
 import { MessageBubbleProps } from '@/Mediums/Chat/Utils/prompt&type';
 import UserMessageinChat from './Children/UserMessage';
@@ -14,8 +13,8 @@ const MessageBubble = function MessageBubble({
     message,
     messageComponentIndex,
     currentProcessingStep,
+    cost
 }: MessageBubbleProps) {
-
 
     if (message.role === 'user') {
         return (
@@ -25,7 +24,7 @@ const MessageBubble = function MessageBubble({
     if (message.role === 'assistant') {
         return (
             <>
-                <AssistantMessageHeader messageComponentIndex={messageComponentIndex} currentProcessingStep={currentProcessingStep} font={sourceSerif4} timestamp={message.timestamp} />
+                <AssistantMessageHeader messageComponentIndex={messageComponentIndex} currentProcessingStep={currentProcessingStep} font={sourceSerif4} timestamp={message.timestamp} cost={cost.total} />
                 <AssistantMessageinChat message={message} />
             </>
         );

@@ -9,102 +9,6 @@ const openai = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY,
 });
 
-const modelPricing = [
-  {
-    models: ["gpt-4.5-preview", "gpt-4.5-preview-2025-02-27"],
-    input: 75.0,
-    cachedInput: 37.5,
-    output: 150.0,
-  },
-  {
-    models: ["gpt-4o", "gpt-4o-2024-08-06"],
-    input: 2.5,
-    cachedInput: 1.25,
-    output: 10.0,
-  },
-  {
-    models: ["gpt-4o-audio-preview", "gpt-4o-audio-preview-2024-12-17"],
-    input: 2.5,
-    cachedInput: null,
-    output: 10.0,
-  },
-  {
-    models: ["gpt-4o-realtime-preview", "gpt-4o-realtime-preview-2024-12-17"],
-    input: 5.0,
-    cachedInput: 2.5,
-    output: 20.0,
-  },
-  {
-    models: ["gpt-4o-mini", "gpt-4o-mini-2024-07-18"],
-    input: 0.15,
-    cachedInput: 0.075,
-    output: 0.6,
-  },
-  {
-    models: [
-      "gpt-4o-mini-audio-preview",
-      "gpt-4o-mini-audio-preview-2024-12-17",
-    ],
-    input: 0.15,
-    cachedInput: null,
-    output: 0.6,
-  },
-  {
-    models: [
-      "gpt-4o-mini-realtime-preview",
-      "gpt-4o-mini-realtime-preview-2024-12-17",
-    ],
-    input: 0.6,
-    cachedInput: 0.3,
-    output: 2.4,
-  },
-  {
-    models: ["o1", "o1-2024-12-17"],
-    input: 15.0,
-    cachedInput: 7.5,
-    output: 60.0,
-  },
-  {
-    models: ["o1-pro", "o1-pro-2025-03-19"],
-    input: 150.0,
-    cachedInput: null,
-    output: 600.0,
-  },
-  {
-    models: ["o3-mini", "o3-mini-2025-01-31"],
-    input: 1.1,
-    cachedInput: 0.55,
-    output: 4.4,
-  },
-  {
-    models: ["o1-mini", "o1-mini-2024-09-12"],
-    input: 1.1,
-    cachedInput: 0.55,
-    output: 4.4,
-  },
-  {
-    models: [
-      "gpt-4o-mini-search-preview",
-      "gpt-4o-mini-search-preview-2025-03-11",
-    ],
-    input: 0.15,
-    cachedInput: null,
-    output: 0.6,
-  },
-  {
-    models: ["gpt-4o-search-preview", "gpt-4o-search-preview-2025-03-11"],
-    input: 2.5,
-    cachedInput: null,
-    output: 10.0,
-  },
-  {
-    models: ["computer-use-preview", "computer-use-preview-2025-03-11"],
-    input: 3.0,
-    cachedInput: null,
-    output: 12.0,
-  },
-];
-
 export async function POST(req: NextRequest) {
   if (!process.env.OPENAI_API_KEY) {
     return new Response("OpenAI API key is not set", { status: 500 });
@@ -122,8 +26,6 @@ export async function POST(req: NextRequest) {
     tools = undefined,
     reasoning = undefined,
   } = await req.json();
-
-  console.log(" model & pricing", model, pricing);
 
   if (!messages || !Array.isArray(messages)) {
     return new Response("Messages are required", { status: 400 });
@@ -214,8 +116,6 @@ export async function POST(req: NextRequest) {
       headers: {
         "Content-Type": "text/event-stream",
         "Transfer-Encoding": "chunked",
-        "X-Content-Type-Options": "nosniff",
-        "Cache-Control": "no-cache, no-transform",
       },
     });
   }
@@ -242,6 +142,13 @@ export async function POST(req: NextRequest) {
     const outputCost = usage.output_tokens * (pricing.output / 1000000);
 
     const totalCost = inputCost + cachedInputCost + outputCost;
+
+    console.log("costs", {
+      inputCost,
+      cachedInputCost,
+      outputCost: usage.output_tokens * (pricing.output / 1000000),
+      totalCost: inputCost + cachedInputCost + outputCost,
+    });
 
     return NextResponse.json({
       response: response.output,

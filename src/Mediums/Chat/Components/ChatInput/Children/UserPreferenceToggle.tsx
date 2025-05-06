@@ -10,21 +10,12 @@ const UserPreferenceToggle = function UserPreferenceToggle({
     userPreferences: UserPreferences;
     setUserPreferences: Dispatch<SetStateAction<UserPreferences>>;
 }) {
-    const [prevUserPreferences, setPrevUserPreferences] = useState(userPreferences);
 
-    useEffect(() => {
-        if (userPreferences !== prevUserPreferences) {
-            setPrevUserPreferences(userPreferences);
-        } else {
-            //console.log("User Preference Toggle Rendered for unknown reason");
-        }
-    }, [userPreferences, prevUserPreferences]);
 
     return (
         <div>
             <div className="flex items-center gap-1.5 p-3">
                 <div className="flex flex-col gap-2 w-[140px] border-r border-[#4A4235]/10 my-2">
-                    {/* Search Toggle */}
                     <div className="flex items-start gap-2">
                         <Switch
                             checked={userPreferences.searchEnabled}
@@ -47,8 +38,6 @@ const UserPreferenceToggle = function UserPreferenceToggle({
                             Search
                         </Label>
                     </div>
-
-                    {/* Model Selector */}
                     <div className="flex items-center gap-2">
                         <div className="w-6 h-6 flex ml-2.5 items-center justify-center">
                             {userPreferences.model.provider === "OpenAI" ? (
@@ -82,7 +71,7 @@ const UserPreferenceToggle = function UserPreferenceToggle({
                                     }));
                                 }
                             }}
-                            className="bg-transparent text-sm outline-none px-2 py-1 rounded-md appearance-none cursor-pointer"
+                            className="bg-transparent text-sm outline-none px-2 py-1 rounded-md appearance-none cursor-pointer text-black"
                         >
                             {getSupportedModels().map((model, index) => (
                                 <option

@@ -1,6 +1,6 @@
 import { useRef, useEffect, SetStateAction, Dispatch, memo, useCallback, useMemo } from "react";
 import UserInput from "./ChatInput/ChatInput";
-import { UserPreferences, Message } from "../Utils/prompt&type";
+import { UserPreferences, Message, costofconversation } from "../Utils/prompt&type";
 import { handleRawUserInput } from "../master";
 import { conversationHistoryAPI } from "@/Context/Utils/ConversationHistory/apiCall";
 import MessageBubble from "./MessageBubble/MessageBubble";
@@ -11,17 +11,18 @@ const sourceSerif4 = Source_Serif_4({
     weight: ['400', '600', '700'],
 });
 
-
 function Chat(props: {
     input: string;
     messages: Message[];
     userPreferences: UserPreferences;
     currentProcessingStep: string;
     location: { latitude: number; longitude: number };
+    cost: costofconversation
     setMessages: Dispatch<SetStateAction<Message[]>>;
     setInput: Dispatch<SetStateAction<string>>;
     setCurrentProcessingStep: Dispatch<SetStateAction<string>>;
     setUserPreferences: Dispatch<SetStateAction<UserPreferences>>;
+    setCost: Dispatch<SetStateAction<costofconversation>>;
 }) {
 
     const memoizedFont = useMemo(() => sourceSerif4, []);
@@ -35,14 +36,16 @@ function Chat(props: {
                 userPreferences: props.userPreferences,
                 currentProcessingStep: props.currentProcessingStep,
                 location: props.location ? props.location : { latitude: 0, longitude: 0 },
+                cost: props.cost,
             }),
             {
                 setMessages: props.setMessages,
                 setCurrentProcessingStep: props.setCurrentProcessingStep,
                 setUserPreferences: props.setUserPreferences,
+                setCost: props.setCost,
             }
         );
-    }, [props.input, props.setUserPreferences]);
+    }, [props.input, props.userPreferences]);
 
     const messagesEndRef = useRef<HTMLDivElement>(null);
 
@@ -71,7 +74,6 @@ function Chat(props: {
         //    }
         conversationHistoryAPI.addNewMessages(props.messages);
     }, [props.messages]);
-
 
     return (
         (
@@ -123,6 +125,7 @@ function Chat(props: {
                                                         props.currentProcessingStep :
                                                         ''
                                                 }
+                                                cost={props.cost}
                                             />
                                         </div>
                                     ))}

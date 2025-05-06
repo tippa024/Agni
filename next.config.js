@@ -38,6 +38,17 @@ const nextConfig = {
       ],
     },
   ],
+  // Add the webpack configuration here
+  webpack: (config, { isServer }) => {
+    // For server-side builds, don't bundle 'swisseph'.
+    // It contains a native '.node' addon that needs to be required at runtime.
+    if (isServer) {
+      config.externals = [...config.externals, "swisseph"];
+    }
+
+    // Return the modified config
+    return config;
+  },
 };
 
 module.exports = nextConfig;

@@ -1,6 +1,7 @@
 import { memo } from "react";
+import { timestamp } from "@/Mediums/Chat/Utils/prompt&type";
 
-const AssistantMessageHeader = ({ messageComponentIndex, currentProcessingStep, font, timestamp }: { messageComponentIndex: number, currentProcessingStep: string | undefined, font: { className: string }, timestamp: string }) => {
+const AssistantMessageHeader = ({ messageComponentIndex, currentProcessingStep, font, timestamp, cost }: { messageComponentIndex: number, currentProcessingStep: string | undefined, font: { className: string }, timestamp: timestamp, cost: number }) => {
     return (
         <div className="flex items-center justify-between mb-4">
             <div className="flex items-center">
@@ -25,7 +26,7 @@ const AssistantMessageHeader = ({ messageComponentIndex, currentProcessingStep, 
                     )}
             </div>
             <div className='text-xs text-[#2C2C2C]/50 font-mono'>
-                {timestamp}
+                {timestamp.hour}:{timestamp.minute}:{timestamp.second}
             </div>
         </div>
     )

@@ -1,10 +1,10 @@
 export interface StreamResponse {
   stream: () => AsyncGenerator<string, void, unknown>;
   getText: () => Promise<string>;
-  getInputCost: () => string;
-  getCachedInputCost: () => string;
-  getOutputCost: () => string;
-  getTotalCost: () => string;
+  getInputCost: () => [number, number];
+  getCachedInputCost: () => [number, number];
+  getOutputCost: () => [number, number];
+  getTotalCost: () => number;
 }
 
 export async function createStreamFromResponse(
@@ -28,10 +28,10 @@ export async function createStreamFromResponse(
   }
 
   const decoder = new TextDecoder();
-  let inputCost = "0";
-  let cachedInputCost = "0";
-  let outputCost = "0";
-  let totalCost = "0";
+  let inputCost = 0;
+  let cachedInputCost = 0;
+  let outputCost = 0;
+  let totalCost = 0;
 
   const streamFn = async function* () {
     try {
@@ -98,13 +98,13 @@ export async function createStreamFromResponse(
       return totalCost;
     },
     getInputCost() {
-      return inputCost;
+      return [inputCost, inputCost];
     },
     getCachedInputCost() {
-      return cachedInputCost;
+      return [cachedInputCost, cachedInputCost];
     },
     getOutputCost() {
-      return outputCost;
+      return [outputCost, outputCost];
     },
   };
 }

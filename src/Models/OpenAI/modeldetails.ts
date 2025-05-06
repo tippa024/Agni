@@ -58,19 +58,19 @@ export const openaiModelDetails: modeloptionsforprovider[] = [
   },
 
   {
-    name: "o1",
-    apiCallName: "o1-2024-12-17",
+    name: "o3",
+    apiCallName: "o3-2025-04-16",
     reasoning: true,
     pricing: {
-      input: 15.0,
-      cachewrite: 7.5,
-      cacheread: 7.5,
-      output: 60.0,
+      input: 10.0,
+      cachewrite: 2.5,
+      cacheread: 2.5,
+      output: 40.0,
     },
   },
   {
-    name: "o3-mini",
-    apiCallName: "o3-mini-2025-01-31",
+    name: "o4-mini",
+    apiCallName: "o4-mini-2025-04-16",
     reasoning: true,
     pricing: {
       input: 1.1,

@@ -1,7 +1,7 @@
-import { SearchOutput, ModelForRefinement } from "../prompt&type";
+import { SearchOutput } from "../prompt&type";
 import { refineParametersForOpenPerplex } from "./refinePrameters";
 import { OpenPerplexSearchParameters } from "./prompt&type";
-import { Message } from "@/Mediums/Chat/Utils/prompt&type";
+import { Message, supportedModels } from "@/Mediums/Chat/Utils/prompt&type";
 import { fallbackSearchParametersForOpenPerplex } from "./refinePrameters";
 
 export const OpenPerplexAPI = {
@@ -9,16 +9,10 @@ export const OpenPerplexAPI = {
     userQuery: string,
     conversation: Message[],
     currentProcessingStep: (step: string) => void,
-    refimenmentNeeded: boolean,
-    modelForRefinement: ModelForRefinement
+    refinementNeeded: boolean,
+    modelForRefinement: supportedModels
   ): Promise<SearchOutput> => {
-    console.log(
-      "OpenPerplex Refine Search API Client - Starting",
-      userQuery,
-      conversation,
-      refimenmentNeeded,
-      modelForRefinement
-    );
+    console.log("OpenPerplex Search API Client - Starting");
 
     let searchParameters = {
       ...fallbackSearchParametersForOpenPerplex,
@@ -28,7 +22,7 @@ export const OpenPerplexAPI = {
       })}`,
     } as OpenPerplexSearchParameters;
 
-    if (refimenmentNeeded) {
+    if (refinementNeeded) {
       currentProcessingStep("Refining search parameters");
       const refinedParameters = await refineParametersForOpenPerplex.search(
         userQuery,
@@ -36,7 +30,6 @@ export const OpenPerplexAPI = {
         currentProcessingStep,
         modelForRefinement
       );
-
       searchParameters = refinedParameters;
     }
 
@@ -58,14 +51,16 @@ export const OpenPerplexAPI = {
 
       const searchData = await response.json();
 
+      const { sources, llm_response } = searchData;
+
       if (searchData.error) {
         console.error("OpenPerplex Search API - Failed", searchData.error);
         throw new Error(searchData.error);
       }
 
-      console.log("OpenPerplex Search API Client - Completed");
+      console.log("OpenPerplex Search API Client - Completed", searchData);
 
-      return searchData as SearchOutput;
+      return { sources, textOutput: llm_response } as SearchOutput;
     } catch (error: any) {
       console.error("Error in OpenPerplexSearch:", error);
       throw new Error(error.message || "An error occurred");

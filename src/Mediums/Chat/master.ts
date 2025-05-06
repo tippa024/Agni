@@ -1,4 +1,10 @@
-import { ChatState, ChatActions, systemMessage } from "./Utils/prompt&type";
+import {
+  ChatState,
+  ChatActions,
+  systemMessage,
+  supportedModels,
+  getSupportedModels,
+} from "./Utils/prompt&type";
 import {
   contextualisedInputPromptAfterSearch,
   SearchOutput,
@@ -16,16 +22,6 @@ export async function handleRawUserInput(
   actions: ChatActions
 ) {
   const state = getState();
-  console.log("Initialising Master Handler", {
-    userQuery: state.input,
-    searchEnabled: state.userPreferences.searchEnabled,
-    searchProvider: state.userPreferences.searchEnabled
-      ? state.userPreferences.searchProvider
-      : "noSearch",
-    model: state.userPreferences.model,
-  });
-
-  actions.setCurrentProcessingStep("We are going for lift off");
 
   e.preventDefault(); //still not sure if this is needed, but it's here - to be safe
   if (!state.input.trim()) return;
@@ -47,40 +43,35 @@ export async function handleRawUserInput(
     if (state.userPreferences.searchEnabled) {
       actions.setCurrentProcessingStep("Searching...");
 
-      {
-        try {
-          const searchOutput = (await getSearch(
-            userMessage,
-            state.userPreferences.searchProvider,
-            state.messages,
-            actions.setCurrentProcessingStep,
-            true,
-            { model: ["gpt-4o-mini", "OpenAI"] }
-          )) as SearchOutput;
+      const modelForRefinement = getSupportedModels().find(
+        (model) => model.name === "4.1-Mini"
+      ) as supportedModels;
 
-          const { sources, textOutput } = searchOutput;
+      console.log("Model for refinement", modelForRefinement);
 
-          setMessage.SourcesToCurrent(sources, actions.setMessages);
+      try {
+        const searchOutput = (await getSearch(
+          userMessage,
+          state.userPreferences.searchProvider,
+          state.messages,
+          actions.setCurrentProcessingStep,
+          true,
+          modelForRefinement
+        )) as SearchOutput;
 
-          contextualizedInput = `${contextualisedInputPromptAfterSearch} users initial question: "${userMessage}". Search Results: ${JSON.stringify(
-            sources
-          )}Extracted Content: ${textOutput}`;
+        const { sources, textOutput } = searchOutput;
 
-          console.log("Input after search", contextualizedInput);
-        } catch (error) {
-          console.error("Error in OpenPerplex Refine Search:", error);
-        }
+        setMessage.SourcesToCurrent(sources, actions.setMessages);
+
+        contextualizedInput = `${contextualisedInputPromptAfterSearch} users initial question: "${userMessage}". Search Results: ${JSON.stringify(
+          sources
+        )}Extracted Content: ${textOutput}`;
+      } catch (error) {
+        console.error("Error in OpenPerplex Refine Search:", error);
       }
     }
 
     actions.setCurrentProcessingStep("Take Off");
-
-    console.log(
-      "Master Handler concluding with model:",
-      state.userPreferences.model.name,
-      "from",
-      state.userPreferences.model.provider
-    );
 
     try {
       actions.setCurrentProcessingStep("Starting final response");
@@ -96,6 +87,7 @@ export async function handleRawUserInput(
           conversationHistory: state.messages,
           context: state.userPreferences.context,
           model: state.userPreferences.model,
+          location: state.location,
         },
         actions.setCurrentProcessingStep
       );
